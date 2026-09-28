@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace report {
+namespace briefpp {
 namespace detail {
 
 inline std::string replace_all(std::string value, const std::string& from, const std::string& to) {
@@ -117,12 +117,16 @@ inline std::string plain_inline(const InlineContent& content) {
     return out;
 }
 
-inline void require_table(const Node& node) {
-    if (node.headers.empty()) throw std::logic_error("table needs columns");
+inline std::size_t require_table(const Node& node) {
+    if (node.table_column_count == 0) throw std::logic_error("table needs columns or rows");
+    if (node.headers.empty() && node.rows.empty()) throw std::logic_error("headerless table needs a row");
+    if (!node.headers.empty() && node.headers.size() != node.table_column_count)
+        throw std::logic_error("table header width must match columns");
     for (const auto& row : node.rows)
-        if (row.size() != node.headers.size())
+        if (row.size() != node.table_column_count)
             throw std::logic_error("table row width must match columns");
+    return node.table_column_count;
 }
 
 } // namespace detail
-} // namespace report
+} // namespace briefpp

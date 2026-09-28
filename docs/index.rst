@@ -1,5 +1,5 @@
-cpp-reportlib
-=============
+Brief++
+========
 
 A header-only C++17 library for programmatically composing scientific reports.
 

@@ -1,4 +1,4 @@
-project = 'cpp-reportlib'
-copyright = '2026, cpp-reportlib contributors'
+project = 'Brief++'
+copyright = '2026, Brief++ contributors'
 extensions = []
 html_theme = 'alabaster'

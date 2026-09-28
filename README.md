@@ -1,4 +1,4 @@
-# cpp-reportlib
+# Brief++
 
 A lightweight, embeddable C++17 library for generating technical and scientific reports in Markdown/MyST, reStructuredText/Sphinx, HTML, LaTeX, Typst, plain text, and JSON AST. The C++ core is header-only and has no external dependencies.
 
@@ -7,15 +7,15 @@ A lightweight, embeddable C++17 library for generating technical and scientific 
 Add `include/` to your compiler's include path, or use the optional CMake target:
 
 ```cmake
-add_subdirectory(external/cpp-reportlib)
-target_link_libraries(application PRIVATE reportlib::reportlib)
+add_subdirectory(external/briefpp)
+target_link_libraries(application PRIVATE briefpp::briefpp)
 ```
 
 ```cpp
-#include <reportlib/report.hpp>
+#include <briefpp/report.hpp>
 
 int main() {
-    report::Document doc;
+    briefpp::Document doc;
     doc.title("Simulation Report").author("Research Team");
     auto& results = doc.section("Results");
     results.paragraph().text("The simulation converged. See ")
@@ -37,16 +37,22 @@ int main() {
 
 Run `cmake -S . -B build && cmake --build build && ctest --test-dir build` to build and test. The complete example is in [`examples/atmospheric.cpp`](examples/atmospheric.cpp).
 
-To generate files you can inspect, run `cmake --build build --target reportlib_demo` after configuring. This creates all seven text formats in `build/demo` alongside the sample figure; with `pdflatex` installed, it also creates a PDF. Edit `examples/atmospheric.cpp` and run the target again to see your changes.
+To generate files you can inspect, run `cmake --build build --target briefpp_demo` after configuring. This creates all seven text formats in `build/demo` alongside the sample figure; with `pdflatex` installed, it also creates a PDF. Edit `examples/atmospheric.cpp` and run the target again to see your changes.
 
 The standalone test build downloads doctest v2.5.3 through CMake FetchContent. When this repository is added as a subdirectory of another project, tests and examples default to off, so the header-only C++ library needs no download.
 
+### PyPI header package
+
+The optional `briefpp` Python distribution installs the same C++ headers; it does not provide Python bindings or add dependencies to the C++ library. After `pip install briefpp`, obtain the compiler include directory with `python -c 'import briefpp; print(briefpp.get_include())'`. Use that directory with your compiler's `-I` option so `#include <briefpp/report.hpp>` works.
+
+To publish a version, update both `project.version` in `pyproject.toml` and the version in `CMakeLists.txt`, then publish a GitHub release tagged `v<version>` (for example, `v0.1.0`). The release workflow builds a wheel and source archive, checks the package, and uploads both to PyPI. Set the GitHub Actions secret `PYPI_API_TOKEN` to a PyPI API token before publishing. The first successful upload creates the PyPI project if the name is available.
+
 ## Supported subset
 
-The semantic model supports metadata, nested sections, reusable inline content, citations, equations, figures, tables, nested lists, definition lists, code blocks, quotes, admonitions, horizontal rules, page breaks, IDs, semantic roles, backend-specific raw blocks, and reusable document fragments. Markdown output uses MyST directives for equations, figures, and admonitions. RST output targets Sphinx. LaTeX, HTML, and Typst renderers have small backend-specific configuration APIs.
+The semantic model supports metadata, nested sections, reusable inline content, citations, equations, figures, headered and headerless tables, nested lists, definition lists, code blocks, quotes, admonitions, horizontal rules, page breaks, IDs, semantic roles, backend-specific raw blocks, and reusable document fragments. Markdown output uses MyST directives for equations, figures, and admonitions. RST output targets Sphinx. LaTeX, HTML, and Typst renderers have small backend-specific configuration APIs; LaTeX can map roles to style-defined environments.
 
 PDF compilation, parsing, and bibliography database management are outside the core. A `.tex` or `.typ` file can be compiled with an installed external tool. Figure files must exist at the paths used when rendering or compiling the report. See [renderer behavior and degradation](docs/backends.rst) for format-specific details.
 
 The C++ API is documented in the [Sphinx documentation](docs/index.rst).
 
-GitHub Actions runs the doctest suite and builds the Sphinx HTML website on pushes and pull requests. On pushes to `main`, it publishes the site to GitHub Pages after the tests pass. Enable **Settings → Pages → Build and deployment → GitHub Actions** in the repository once; the site will then be available at [vrtulka23.github.io/cpp-reportlib](https://vrtulka23.github.io/cpp-reportlib/). The `sphinx-site` artifact remains available from each workflow run.
+GitHub Actions runs the doctest suite and builds the Sphinx HTML website on pushes and pull requests. On pushes to `main`, it publishes the site to GitHub Pages after the tests pass. Enable **Settings → Pages → Build and deployment → GitHub Actions** in the repository once; the site will then be available at [vrtulka23.github.io/briefpp](https://vrtulka23.github.io/briefpp/). The `sphinx-site` artifact remains available from each workflow run.

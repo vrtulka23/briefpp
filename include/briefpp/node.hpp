@@ -1,12 +1,13 @@
 #pragma once
 
 #include <list>
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-namespace report {
+namespace briefpp {
 
 enum class Backend { Markdown, Rst, Latex, Html, Typst, PlainText, Json };
 enum class Kind { Section, Paragraph, Equation, Figure, Table, CodeBlock,
@@ -73,6 +74,7 @@ public:
     InlineContent inlines;
     InlineContent heading_content;
     InlineContent caption_content;
+    std::size_t table_column_count = 0;
     std::vector<InlineContent> headers;
     std::vector<std::vector<InlineContent>> rows;
     std::list<ListItem> items;
@@ -116,7 +118,15 @@ public:
     Node& columns(std::vector<InlineContent> names) {
         if (kind != Kind::Table) throw std::logic_error("columns requires a table");
         if (!rows.empty()) throw std::logic_error("set columns before rows");
+        table_column_count = names.size();
         headers = std::move(names);
+        return *this;
+    }
+    Node& column_count(std::size_t count) {
+        if (kind != Kind::Table) throw std::logic_error("column_count requires a table");
+        if (!headers.empty() || !rows.empty()) throw std::logic_error("set column_count before cells or rows");
+        if (count == 0) throw std::invalid_argument("table column count must be positive");
+        table_column_count = count;
         return *this;
     }
     Node& columns(std::vector<std::string> names) {
@@ -129,7 +139,10 @@ public:
     }
     Node& row(std::vector<InlineContent> cells) {
         if (kind != Kind::Table) throw std::logic_error("row requires a table");
-        if (headers.empty() || cells.size() != headers.size())
+        if (cells.empty()) throw std::invalid_argument("table rows must have cells");
+        if (table_column_count == 0) table_column_count = cells.size();
+        if (cells.size() != table_column_count ||
+            (!rows.empty() && rows.back().size() != table_column_count))
             throw std::invalid_argument("table row width must match columns");
         rows.push_back(std::move(cells));
         return *this;
@@ -164,8 +177,8 @@ public:
     }
     InlineContent& cell() {
         if (kind != Kind::Table) throw std::logic_error("cell requires a table");
-        if (headers.empty()) throw std::logic_error("set columns before cells");
-        if (rows.empty() || rows.back().size() == headers.size()) rows.emplace_back();
+        if (table_column_count == 0) throw std::logic_error("set columns or column_count before cells");
+        if (rows.empty() || rows.back().size() == table_column_count) rows.emplace_back();
         rows.back().emplace_back();
         return rows.back().back();
     }
@@ -220,4 +233,4 @@ inline Node& ListItem::list(bool numbered) {
     return children.back();
 }
 
-} // namespace report
+} // namespace briefpp

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "briefpp"
+version = "0.1.0"
+description = "Brief++: header-only C++17 reports in multiple formats"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [{ name = "Brief++ contributors" }]
+keywords = ["c++", "header-only", "reports", "latex", "html"]
+
+[project.urls]
+Homepage = "https://github.com/vrtulka23/briefpp"
+Documentation = "https://vrtulka23.github.io/briefpp/"
+Source = "https://github.com/vrtulka23/briefpp"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["README.md", "LICENSE", "pyproject.toml", "python/briefpp", "include/briefpp"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/briefpp"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"include/briefpp" = "briefpp/include/briefpp"

@@ -1,15 +1,15 @@
-# cpp-reportlib — Focused Development Plan
+# Brief++ — Focused Development Plan
 
 ## 1. Project Purpose
 
-`cpp-reportlib` is a **small, dependency-free, header-only C++ library for programmatically constructing technical/scientific documents and rendering the same semantic document to several text-based output formats**.
+Brief++ (`briefpp` in code and package names) is a **small, dependency-free, header-only C++ library for programmatically constructing technical/scientific documents and rendering the same semantic document to several text-based output formats**.
 
 Its primary use case is C++ software that already owns structured information—parameters, equations, validation results, tables, figures, metadata, algorithm descriptions, simulation results—and needs to emit documentation or reports directly from the C++ core.
 
 Typical usage:
 
 ```cpp
-report::Document doc;
+briefpp::Document doc;
 
 doc.title("Simulation Report");
 doc.section("Parameters");
@@ -43,7 +43,7 @@ The library SHOULD make this common case simple.
 
 The project MUST remain small and focused.
 
-`cpp-reportlib` is NOT intended to become:
+`briefpp` is NOT intended to become:
 
 - a general-purpose markup language;
 - a Markdown/MyST/RST parser;
@@ -166,7 +166,7 @@ Backend-specific constructs MUST NOT become common node types unless they repres
 Use raw backend content as the escape hatch:
 
 ```cpp
-doc.raw(report::Backend::Latex, R"(\newcommand{...})");
+doc.raw(briefpp::Backend::Latex, R"(\newcommand{...})");
 ```
 
 Do not distort the common AST to eliminate every possible use of raw content.
@@ -650,7 +650,7 @@ Implement correct JSON escaping.
 
 Include a small schema/version identifier at document level so the representation can evolve deliberately.
 
-Do NOT turn cpp-reportlib into a general JSON library.
+Do NOT turn briefpp into a general JSON library.
 
 ---
 
@@ -663,7 +663,7 @@ Provide a compact renderer configuration for high-level backend choices.
 Useful configuration may include:
 
 ```cpp
-report::LatexRenderer latex;
+briefpp::LatexRenderer latex;
 
 latex.document_class("report")
      .package("booktabs")
@@ -752,9 +752,9 @@ Retain raw backend content as an explicit escape hatch.
 Examples:
 
 ```cpp
-doc.raw(report::Backend::Latex, R"(\clearpage)");
-doc.raw(report::Backend::Html, R"(<custom-element></custom-element>)");
-doc.raw(report::Backend::Typst, "#...");
+doc.raw(briefpp::Backend::Latex, R"(\clearpage)");
+doc.raw(briefpp::Backend::Html, R"(<custom-element></custom-element>)");
+doc.raw(briefpp::Backend::Typst, "#...");
 ```
 
 Raw nodes MUST clearly identify their target backend.
@@ -772,15 +772,15 @@ Keep or strengthen composability through document fragments.
 A component should be able to generate a reusable semantic fragment:
 
 ```cpp
-report::Fragment solver_documentation();
-report::Fragment validation_report();
-report::Fragment parameter_reference();
+briefpp::Fragment solver_documentation();
+briefpp::Fragment validation_report();
+briefpp::Fragment parameter_reference();
 ```
 
 and compose them:
 
 ```cpp
-report::Document doc;
+briefpp::Document doc;
 
 doc.append(solver_documentation());
 doc.append(validation_report());
@@ -849,7 +849,7 @@ Include a compact example demonstrating one document rendered to multiple format
 Example:
 
 ```cpp
-report::Document doc;
+briefpp::Document doc;
 
 doc.title("Validation Report");
 doc.section("Results");
@@ -1015,7 +1015,7 @@ New features should require a concrete technical/scientific reporting use case.
 
 # 30. Long-Term Scope Principle
 
-The value of `cpp-reportlib` comes from being small enough to embed confidently in another C++ project.
+The value of `briefpp` comes from being small enough to embed confidently in another C++ project.
 
 A feature that makes the library substantially larger, harder to compile, harder to understand, or dependent on another ecosystem must justify that cost.
 
@@ -1026,7 +1026,7 @@ large scientific/engineering application
                  |
                  | tiny embedded dependency
                  v
-          cpp-reportlib
+          briefpp
                  |
                  v
         semantic document
@@ -1036,7 +1036,7 @@ large scientific/engineering application
       docs     reports   artifacts
 ```
 
-`cpp-reportlib` should remain infrastructure, not become an application platform.
+`briefpp` should remain infrastructure, not become an application platform.
 
 The preferred philosophy is:
 

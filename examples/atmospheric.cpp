@@ -1,7 +1,7 @@
-#include <reportlib/report.hpp>
+#include <briefpp/report.hpp>
 
 int main() {
-    report::Document doc;
+    briefpp::Document doc;
     doc.title("Atmospheric Simulation").author("Simulation Team");
     doc.section("Introduction").paragraph("This report contains the results of the atmospheric simulation.");
     doc.section("Model").equation(R"(\frac{dP}{dz} = -\rho g)", "hydrostatic");

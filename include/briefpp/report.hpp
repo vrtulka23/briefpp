@@ -8,7 +8,7 @@
 #include "renderers/plain_text.hpp"
 #include "renderers/json.hpp"
 
-namespace report {
+namespace briefpp {
 
 inline void Document::write(const std::string& path) const {
     const std::size_t dot = path.find_last_of('.');
@@ -28,4 +28,4 @@ inline void Document::write(const std::string& path) const {
     if (!file) throw std::runtime_error("cannot write report: " + path);
 }
 
-} // namespace report
+} // namespace briefpp

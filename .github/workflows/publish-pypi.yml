@@ -1,0 +1,80 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify distributions
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+
+          with open("pyproject.toml", "rb") as stream:
+              version = tomllib.load(stream)["project"]["version"]
+          expected = f"v{version}"
+          actual = os.environ["RELEASE_TAG"]
+          if actual != expected:
+              raise SystemExit(f"Release tag {actual!r} must match package version {expected!r}")
+          PY
+      - name: Install packaging tools
+        run: python -m pip install --upgrade build twine
+      - name: Build wheel and source distribution
+        run: python -m build
+      - name: Check package metadata
+        run: python -m twine check dist/*
+      - name: Verify installed headers
+        run: |
+          python -m pip install --no-deps dist/*.whl
+          python - <<'PY'
+          from pathlib import Path
+          import briefpp
+
+          include = Path(briefpp.get_include())
+          assert (include / "briefpp" / "report.hpp").is_file()
+          assert (include / "briefpp" / "renderers" / "latex.hpp").is_file()
+          print(f"Installed headers: {include}")
+          PY
+          briefpp_include=$(python -c 'import briefpp; print(briefpp.get_include())')
+          c++ -std=c++17 -I "$briefpp_include" -x c++ -fsyntax-only - <<'CPP'
+          #include <briefpp/report.hpp>
+          int main() {
+              briefpp::Document doc;
+              doc.title("PyPI headers");
+              return 0;
+          }
+          CPP
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Upload to PyPI
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: python-distributions
+          path: dist/
+      - name: Publish release
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: false

@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 
 class PlainTextRenderer {
 public:
@@ -46,7 +46,7 @@ private:
         case Kind::Table:
             detail::require_table(node);
             if (!node.caption_content.empty()) out << inline_text(node.caption_content) << '\n';
-            write_row(out, node.headers);
+            if (!node.headers.empty()) write_row(out, node.headers);
             for (const auto& row : node.rows) write_row(out, row);
             out << '\n'; break;
         case Kind::CodeBlock: out << node.value << "\n\n"; break;
@@ -81,4 +81,4 @@ private:
     }
 };
 
-} // namespace report
+} // namespace briefpp

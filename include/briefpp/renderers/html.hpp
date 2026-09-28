@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 namespace detail {
 
 inline std::string escape_html(const std::string& value) {
@@ -106,9 +106,12 @@ private:
             detail::require_table(node);
             out << "<table" << attrs << ">";
             if (!node.caption_content.empty()) out << "<caption>" << detail::html_inline(node.caption_content) << "</caption>";
-            out << "<thead><tr>";
-            for (const auto& cell : node.headers) out << "<th scope=\"col\">" << detail::html_inline(cell) << "</th>";
-            out << "</tr></thead><tbody>";
+            if (!node.headers.empty()) {
+                out << "<thead><tr>";
+                for (const auto& cell : node.headers) out << "<th scope=\"col\">" << detail::html_inline(cell) << "</th>";
+                out << "</tr></thead>";
+            }
+            out << "<tbody>";
             for (const auto& row : node.rows) {
                 out << "<tr>";
                 for (const auto& cell : row) out << "<td>" << detail::html_inline(cell) << "</td>";
@@ -150,4 +153,4 @@ private:
     }
 };
 
-} // namespace report
+} // namespace briefpp

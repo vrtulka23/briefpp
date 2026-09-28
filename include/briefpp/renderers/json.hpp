@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 namespace detail {
 
 inline std::string json_quote(const std::string& value) {
@@ -121,7 +121,7 @@ inline void json_node(std::ostream& out, const Node& node) {
     case Kind::Table:
         require_table(node);
         out << ",\"caption\":"; json_inline(out, node.caption_content);
-        out << ",\"headers\":[";
+        out << ",\"column_count\":" << node.table_column_count << ",\"headers\":[";
         for (std::size_t i = 0; i < node.headers.size(); ++i) {
             if (i) out << ',';
             json_inline(out, node.headers[i]);
@@ -183,7 +183,7 @@ class JsonRenderer {
 public:
     std::string render(const Document& doc) const {
         std::ostringstream out;
-        out << "{\"schema\":\"cpp-reportlib/1\",\"metadata\":{"
+        out << "{\"schema\":\"briefpp/1\",\"metadata\":{"
             << "\"title\":" << detail::json_quote(doc.metadata.title)
             << ",\"subtitle\":" << detail::json_quote(doc.metadata.subtitle)
             << ",\"author\":" << detail::json_quote(doc.metadata.author)
@@ -202,4 +202,4 @@ public:
     }
 };
 
-} // namespace report
+} // namespace briefpp

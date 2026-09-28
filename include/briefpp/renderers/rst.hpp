@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 
 class RstRenderer {
 public:
@@ -49,8 +49,9 @@ private:
             break;
         case Kind::Table:
             detail::require_table(node);
-            out << ".. list-table:: " << detail::inline_text(node.caption_content, Backend::Rst) << "\n   :header-rows: 1\n\n";
-            write_row(out, node.headers);
+            out << ".. list-table:: " << detail::inline_text(node.caption_content, Backend::Rst)
+                << "\n   :header-rows: " << (node.headers.empty() ? 0 : 1) << "\n\n";
+            if (!node.headers.empty()) write_row(out, node.headers);
             for (const auto& row : node.rows) write_row(out, row);
             out << "\n";
             break;
@@ -89,4 +90,4 @@ private:
     }
 };
 
-} // namespace report
+} // namespace briefpp

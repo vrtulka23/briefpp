@@ -10,7 +10,7 @@ The same document can be written to every format:
 
 .. code-block:: cpp
 
-   report::Document doc;
+   briefpp::Document doc;
    doc.title("Validation Report");
    auto& results = doc.section("Results").label("results").role("summary");
    results.paragraph().text("See ").reference("results").text(" for details.");
@@ -69,20 +69,21 @@ Support summary
      - ID only
      - ID only
      - Both
-     - ID only
+     - ID/mapped roles
      - ID only
      - Ignored
 
 JSON writes the complete semantic tree, including IDs, roles, inline kinds,
 metadata, and backend targets for raw blocks. Its document-level schema key is
-``cpp-reportlib/1``. It is intended for inspection and interchange, not for
+``briefpp/1``. It is intended for inspection and interchange, not for
 round-trip parsing by this library.
 
 Degradation and raw content
 ---------------------------
 
-Roles are styling hooks in HTML's ``class`` attribute. Other renderers keep
-their content but ignore roles. The HTML and Markdown page-break markers use
+Roles are styling hooks in HTML's ``class`` attribute. LaTeX can wrap nodes
+with configured environments for selected roles. Other renderers keep their
+content but ignore roles. The HTML and Markdown page-break markers use
 ``page-break`` as a class; an external print stylesheet can style it. Plain
 text omits page breaks and inline styling while keeping readable content.
 Citation keys appear as visible bracketed keys where no bibliography source
@@ -105,7 +106,33 @@ Backend configuration
 
 ``LatexRenderer`` supports ``document_class()``, ``paper()``, ``font_size()``,
 ``package()``, ``style()`` (an alias for a package), and ``preamble()``. Use a
-LaTeX ``.sty`` file or preamble content for detailed styling.
+LaTeX ``.sty`` file or preamble content for detailed styling. Map a semantic
+role to an environment defined by that style:
+
+.. code-block:: cpp
+
+   auto& details = doc.table().row("Value", "42").row("Units", "m/s");
+   details.role("parameter-entry");
+
+   briefpp::LatexRenderer latex;
+   latex.style("sntreport")
+        .role_environment("parameter-entry", "sntentry")
+        .table_column_spec("parameter-entry",
+                           R"(@{}p{0.25\linewidth}p{0.69\linewidth}@{})");
+   auto tex = latex.render(doc);
+
+The role wraps the entire node with ``\begin{sntentry}`` and
+``\end{sntentry}``. Multiple mapped roles nest in the order they were added
+and close in reverse order. Unmapped roles leave the output unchanged. Choose
+environments that permit the contained LaTeX structure; a nonbreakable box is
+not suitable around a long table. ``table_column_spec()`` changes the raw
+LaTeX column specification for tables with the selected role. The first
+matching role wins; unmapped tables keep left-aligned columns. The caller is
+responsible for providing a specification matching the table's column count.
+
+Headerless tables use MyST ``list-table`` with zero header rows, RST
+``list-table`` with zero header rows, and native tables without invented
+headings in HTML, LaTeX, and Typst.
 
 ``HtmlRenderer`` supports repeated ``stylesheet(path)`` calls. It emits links
 to external CSS files; no CSS is bundled. ``TypstRenderer`` supports

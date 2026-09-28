@@ -1,19 +1,19 @@
-file(MAKE_DIRECTORY "${REPORTLIB_OUTPUT_DIR}")
-configure_file("${REPORTLIB_FIGURE}" "${REPORTLIB_OUTPUT_DIR}/density.png" COPYONLY)
+file(MAKE_DIRECTORY "${BRIEFPP_OUTPUT_DIR}")
+configure_file("${BRIEFPP_FIGURE}" "${BRIEFPP_OUTPUT_DIR}/density.png" COPYONLY)
 file(REMOVE
-  "${REPORTLIB_OUTPUT_DIR}/report.md"
-  "${REPORTLIB_OUTPUT_DIR}/report.rst"
-  "${REPORTLIB_OUTPUT_DIR}/report.tex"
-  "${REPORTLIB_OUTPUT_DIR}/report.html"
-  "${REPORTLIB_OUTPUT_DIR}/report.typ"
-  "${REPORTLIB_OUTPUT_DIR}/report.txt"
-  "${REPORTLIB_OUTPUT_DIR}/report.json"
-  "${REPORTLIB_OUTPUT_DIR}/report.pdf"
+  "${BRIEFPP_OUTPUT_DIR}/report.md"
+  "${BRIEFPP_OUTPUT_DIR}/report.rst"
+  "${BRIEFPP_OUTPUT_DIR}/report.tex"
+  "${BRIEFPP_OUTPUT_DIR}/report.html"
+  "${BRIEFPP_OUTPUT_DIR}/report.typ"
+  "${BRIEFPP_OUTPUT_DIR}/report.txt"
+  "${BRIEFPP_OUTPUT_DIR}/report.json"
+  "${BRIEFPP_OUTPUT_DIR}/report.pdf"
 )
 
 execute_process(
-  COMMAND "${REPORTLIB_EXAMPLE}"
-  WORKING_DIRECTORY "${REPORTLIB_OUTPUT_DIR}"
+  COMMAND "${BRIEFPP_EXAMPLE}"
+  WORKING_DIRECTORY "${BRIEFPP_OUTPUT_DIR}"
   RESULT_VARIABLE example_result
 )
 if(NOT example_result EQUAL 0)
@@ -21,7 +21,7 @@ if(NOT example_result EQUAL 0)
 endif()
 
 foreach(extension md rst tex html typ txt json)
-  set(output "${REPORTLIB_OUTPUT_DIR}/report.${extension}")
+  set(output "${BRIEFPP_OUTPUT_DIR}/report.${extension}")
   if(NOT EXISTS "${output}")
     message(FATAL_ERROR "Missing ${output}")
   endif()
@@ -31,13 +31,13 @@ foreach(extension md rst tex html typ txt json)
   endif()
 endforeach()
 
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.md" markdown)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.rst" rst)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.tex" latex)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.html" html)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.typ" typst)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.txt" plaintext)
-file(READ "${REPORTLIB_OUTPUT_DIR}/report.json" json)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.md" markdown)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.rst" rst)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.tex" latex)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.html" html)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.typ" typst)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.txt" plaintext)
+file(READ "${BRIEFPP_OUTPUT_DIR}/report.json" json)
 string(FIND "${markdown}" "```{figure} density.png" markdown_figure)
 string(FIND "${rst}" ".. figure:: density.png" rst_figure)
 string(FIND "${latex}" "\\includegraphics" latex_figure)
@@ -51,12 +51,12 @@ if(markdown_figure EQUAL -1 OR rst_figure EQUAL -1 OR latex_figure EQUAL -1
   message(FATAL_ERROR "The generated files do not all contain the example figure")
 endif()
 
-if(REPORTLIB_PDFLATEX)
+if(BRIEFPP_PDFLATEX)
   # Two passes resolve LaTeX cross-references.
   foreach(pass RANGE 1 2)
     execute_process(
-      COMMAND "${REPORTLIB_PDFLATEX}" -interaction=nonstopmode -halt-on-error report.tex
-      WORKING_DIRECTORY "${REPORTLIB_OUTPUT_DIR}"
+      COMMAND "${BRIEFPP_PDFLATEX}" -interaction=nonstopmode -halt-on-error report.tex
+      WORKING_DIRECTORY "${BRIEFPP_OUTPUT_DIR}"
       RESULT_VARIABLE latex_result
       OUTPUT_QUIET
       ERROR_VARIABLE latex_error
@@ -66,14 +66,14 @@ if(REPORTLIB_PDFLATEX)
     endif()
   endforeach()
 
-  if(NOT EXISTS "${REPORTLIB_OUTPUT_DIR}/report.pdf")
+  if(NOT EXISTS "${BRIEFPP_OUTPUT_DIR}/report.pdf")
     message(FATAL_ERROR "Missing report.pdf")
   endif()
-  file(SIZE "${REPORTLIB_OUTPUT_DIR}/report.pdf" pdf_size)
+  file(SIZE "${BRIEFPP_OUTPUT_DIR}/report.pdf" pdf_size)
   if(pdf_size LESS 1000)
     message(FATAL_ERROR "report.pdf is unexpectedly small")
   endif()
-  message(STATUS "Generated seven text formats and PDF in ${REPORTLIB_OUTPUT_DIR}")
+  message(STATUS "Generated seven text formats and PDF in ${BRIEFPP_OUTPUT_DIR}")
 else()
-  message(STATUS "Generated seven text formats in ${REPORTLIB_OUTPUT_DIR}")
+  message(STATUS "Generated seven text formats in ${BRIEFPP_OUTPUT_DIR}")
 endif()

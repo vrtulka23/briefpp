@@ -3,7 +3,7 @@
 #include "node.hpp"
 #include <fstream>
 
-namespace report {
+namespace briefpp {
 
 class Document {
 public:
@@ -74,4 +74,4 @@ private:
 
 using DocumentFragment = Document;
 
-} // namespace report
+} // namespace briefpp

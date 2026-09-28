@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 
 class MarkdownRenderer {
 public:
@@ -20,7 +20,8 @@ public:
 
 private:
     static void render_node(std::ostringstream& out, const Node& node, int depth) {
-        if (!node.id.empty() && node.kind != Kind::Figure && node.kind != Kind::Equation)
+        if (!node.id.empty() && node.kind != Kind::Figure && node.kind != Kind::Equation &&
+            (node.kind != Kind::Table || !node.headers.empty()))
             out << "(" << node.id << ")=\n";
         switch (node.kind) {
         case Kind::Section:
@@ -41,6 +42,21 @@ private:
             break;
         case Kind::Table:
             detail::require_table(node);
+            if (node.headers.empty()) {
+                out << "```{list-table}";
+                if (!node.caption_content.empty())
+                    out << ' ' << detail::inline_text(node.caption_content, Backend::Markdown);
+                out << "\n:header-rows: 0\n";
+                if (!node.id.empty()) out << ":name: " << node.id << '\n';
+                out << '\n';
+                for (const auto& row : node.rows) {
+                    for (std::size_t i = 0; i < row.size(); ++i)
+                        out << (i == 0 ? "* - " : "  - ")
+                            << detail::inline_text(row[i], Backend::Markdown) << '\n';
+                }
+                out << "```\n\n";
+                break;
+            }
             out << "|";
             for (const auto& cell : node.headers) out << " " << detail::inline_text(cell, Backend::Markdown) << " |";
             out << "\n|";
@@ -82,4 +98,4 @@ private:
     }
 };
 
-} // namespace report
+} // namespace briefpp

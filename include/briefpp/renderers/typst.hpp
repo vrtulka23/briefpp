@@ -2,7 +2,7 @@
 
 #include "../renderer.hpp"
 
-namespace report {
+namespace briefpp {
 namespace detail {
 
 inline std::string escape_typst(const std::string& value) {
@@ -103,9 +103,12 @@ private:
             detail::require_table(node);
             if (!node.caption_content.empty() || !node.id.empty()) out << "#figure(";
             out << (node.caption_content.empty() && node.id.empty() ? "#table(columns: " : "table(columns: ")
-                << node.headers.size() << ", table.header(";
-            write_cells(out, node.headers);
-            out << ')';
+                << node.table_column_count;
+            if (!node.headers.empty()) {
+                out << ", table.header(";
+                write_cells(out, node.headers);
+                out << ')';
+            }
             for (const auto& row : node.rows) { out << ", "; write_cells(out, row); }
             out << ')';
             if (!node.caption_content.empty() || !node.id.empty()) {
@@ -150,4 +153,4 @@ private:
     }
 };
 
-} // namespace report
+} // namespace briefpp

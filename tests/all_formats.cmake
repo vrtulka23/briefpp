@@ -1,5 +1,10 @@
+if(BRIEFPP_REQUIRE_PDF AND NOT BRIEFPP_PDFLATEX)
+  message(FATAL_ERROR "briefpp_demo needs pdflatex to produce report.pdf")
+endif()
+
 file(MAKE_DIRECTORY "${BRIEFPP_OUTPUT_DIR}")
 configure_file("${BRIEFPP_FIGURE}" "${BRIEFPP_OUTPUT_DIR}/density.png" COPYONLY)
+configure_file("${BRIEFPP_STYLESHEET}" "${BRIEFPP_OUTPUT_DIR}/report.css" COPYONLY)
 file(REMOVE
   "${BRIEFPP_OUTPUT_DIR}/report.md"
   "${BRIEFPP_OUTPUT_DIR}/report.rst"
@@ -51,6 +56,33 @@ if(markdown_figure EQUAL -1 OR rst_figure EQUAL -1 OR latex_figure EQUAL -1
   message(FATAL_ERROR "The generated files do not all contain the example figure")
 endif()
 
+string(FIND "${markdown}" "[project source](https://github.com/vrtulka23/briefpp)" markdown_link)
+string(FIND "${markdown}" "```{math}" markdown_math)
+string(FIND "${markdown}" "| Parameter | Value | Unit |" markdown_table)
+string(FIND "${markdown}" "1. Set the starting conditions" markdown_list)
+string(FIND "${html}" "href=\"report.css\"" html_stylesheet)
+string(FIND "${html}" "mathjax@4/tex-chtml.js" html_mathjax)
+string(FIND "${html}" "\\[\\frac{dP}{dz} = -\\rho g\\]" html_equation)
+string(FIND "${html}" "class=\"backend-note\"" html_raw)
+string(FIND "${latex}" "\\begin{equation}" latex_math)
+string(FIND "${json}" "\"type\":\"definition_list\"" json_definitions)
+string(FIND "${markdown}" "#bib-example2026" markdown_citation)
+string(FIND "${rst}" ".. [example2026]" rst_bibliography)
+string(FIND "${latex}" "\\bibitem{example2026}" latex_bibliography)
+string(FIND "${html}" "id=\"bib-example2026\"" html_bibliography)
+string(FIND "${typst}" "<bib-example2026>" typst_bibliography)
+string(FIND "${plaintext}" "[example2026] Brief++ contributors" text_bibliography)
+string(FIND "${json}" "\"key\":\"example2026\"" json_bibliography)
+if(markdown_link EQUAL -1 OR markdown_math EQUAL -1 OR markdown_table EQUAL -1
+   OR markdown_list EQUAL -1 OR html_stylesheet EQUAL -1 OR html_mathjax EQUAL -1
+   OR html_equation EQUAL -1 OR html_raw EQUAL -1
+   OR latex_math EQUAL -1 OR json_definitions EQUAL -1
+   OR markdown_citation EQUAL -1 OR rst_bibliography EQUAL -1 OR latex_bibliography EQUAL -1
+   OR html_bibliography EQUAL -1 OR typst_bibliography EQUAL -1 OR text_bibliography EQUAL -1
+   OR json_bibliography EQUAL -1)
+  message(FATAL_ERROR "The example is missing expected report features")
+endif()
+
 if(BRIEFPP_PDFLATEX)
   # Two passes resolve LaTeX cross-references.
   foreach(pass RANGE 1 2)
@@ -73,6 +105,11 @@ if(BRIEFPP_PDFLATEX)
   if(pdf_size LESS 1000)
     message(FATAL_ERROR "report.pdf is unexpectedly small")
   endif()
+  file(REMOVE
+    "${BRIEFPP_OUTPUT_DIR}/report.aux"
+    "${BRIEFPP_OUTPUT_DIR}/report.log"
+    "${BRIEFPP_OUTPUT_DIR}/report.out"
+  )
   message(STATUS "Generated seven text formats and PDF in ${BRIEFPP_OUTPUT_DIR}")
 else()
   message(STATUS "Generated seven text formats in ${BRIEFPP_OUTPUT_DIR}")

@@ -84,16 +84,23 @@ image where the generated document or its compiler can find it.
 Run the repository example
 --------------------------
 
-The full example at ``examples/atmospheric.cpp`` generates all seven formats.
-From the repository root:
+The full example at ``examples/atmospheric.cpp`` demonstrates metadata,
+hyperlinks, rich text, references, two formulas, a figure, headered and
+headerless tables, nested lists, definitions, code, notes, fragments, and
+backend-specific content. Install ``pdflatex``, then run from the repository
+root:
 
 .. code-block:: console
 
    cmake -S . -B build
    cmake --build build --target briefpp_demo
 
-Output files appear in ``build/demo``. If ``pdflatex`` is available, the demo
-also compiles a PDF. To run the C++ test suite, use
+The seven text exports, ``report.pdf``, ``density.png``, and ``report.css``
+appear in ``examples/output`` and can be committed with the example. The demo
+target requires ``pdflatex`` so a successful run always includes the PDF.
+Open ``report.html`` in a browser for styled output, ``report.md`` for the
+MyST representation, or ``report.json`` to inspect the semantic tree. To run
+the C++ test suite, use
 ``ctest --test-dir build --output-on-failure``. The standalone test build
 downloads doctest v2.5.3; when Brief++ is embedded with ``add_subdirectory()``,
 tests and examples default to off.

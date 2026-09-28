@@ -53,11 +53,13 @@ if(BRIEFPP_BUILD_EXAMPLES)
     COMMAND ${CMAKE_COMMAND}
       -DBRIEFPP_EXAMPLE=$<TARGET_FILE:atmospheric_report>
       -DBRIEFPP_FIGURE=${CMAKE_CURRENT_SOURCE_DIR}/examples/output/density.png
+      -DBRIEFPP_STYLESHEET=${CMAKE_CURRENT_SOURCE_DIR}/examples/report.css
       -DBRIEFPP_PDFLATEX=${BRIEFPP_PDFLATEX}
-      -DBRIEFPP_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/demo
+      -DBRIEFPP_REQUIRE_PDF=ON
+      -DBRIEFPP_OUTPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/examples/output
       -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/all_formats.cmake
     DEPENDS atmospheric_report
-    COMMENT "Generating all text formats and optional PDF demo"
+    COMMENT "Generating seven text formats and a PDF demo"
     VERBATIM
   )
   if(BRIEFPP_BUILD_TESTS)
@@ -66,7 +68,9 @@ if(BRIEFPP_BUILD_EXAMPLES)
       COMMAND ${CMAKE_COMMAND}
         -DBRIEFPP_EXAMPLE=$<TARGET_FILE:atmospheric_report>
         -DBRIEFPP_FIGURE=${CMAKE_CURRENT_SOURCE_DIR}/examples/output/density.png
+        -DBRIEFPP_STYLESHEET=${CMAKE_CURRENT_SOURCE_DIR}/examples/report.css
         -DBRIEFPP_PDFLATEX=${BRIEFPP_PDFLATEX}
+        -DBRIEFPP_REQUIRE_PDF=OFF
         -DBRIEFPP_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/all_formats.cmake
     )

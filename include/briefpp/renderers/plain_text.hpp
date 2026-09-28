@@ -7,6 +7,7 @@ namespace briefpp {
 class PlainTextRenderer {
 public:
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         if (!doc.metadata.title.empty()) out << doc.metadata.title << "\n\n";
         if (!doc.metadata.subtitle.empty()) out << doc.metadata.subtitle << "\n\n";
@@ -15,6 +16,14 @@ public:
         if (!doc.metadata.institution.empty()) out << "Institution: " << doc.metadata.institution << '\n';
         if (!doc.metadata.abstract.empty()) out << "\nAbstract\n" << doc.metadata.abstract << "\n\n";
         for (const auto& node : doc.children) render_node(out, node, 0);
+        if (!doc.bibliography.empty()) {
+            out << "References\n----------\n\n";
+            for (const auto& entry : doc.bibliography) {
+                out << '[' << entry.key << "] " << detail::bibliography_text(entry);
+                if (!entry.url.empty()) out << ' ' << entry.url;
+                out << ( &entry == &doc.bibliography.back() ? "\n" : "\n\n" );
+            }
+        }
         return out.str();
     }
 private:
@@ -34,7 +43,7 @@ private:
         switch (node.kind) {
         case Kind::Section:
             out << inline_text(node.heading_content) << '\n'
-                << std::string(inline_text(node.heading_content).size(), depth ? '-' : '=') << "\n\n";
+                << std::string(inline_text(node.heading_content).size(), '-') << "\n\n";
             for (const auto& child : node.children) render_node(out, child, depth + 1);
             break;
         case Kind::Paragraph: out << inline_text(node.inlines) << "\n\n"; break;

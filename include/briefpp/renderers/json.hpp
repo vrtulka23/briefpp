@@ -182,6 +182,7 @@ inline void json_nodes(std::ostream& out, const std::list<Node>& nodes) {
 class JsonRenderer {
 public:
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         out << "{\"schema\":\"briefpp/1\",\"metadata\":{"
             << "\"title\":" << detail::json_quote(doc.metadata.title)
@@ -195,7 +196,17 @@ public:
             if (i) out << ',';
             out << detail::json_quote(doc.metadata.keywords[i]);
         }
-        out << "]},\"children\":";
+        out << "]},\"bibliography\":[";
+        for (std::size_t i = 0; i < doc.bibliography.size(); ++i) {
+            if (i) out << ',';
+            const auto& entry = doc.bibliography[i];
+            out << "{\"key\":" << detail::json_quote(entry.key)
+                << ",\"author\":" << detail::json_quote(entry.author)
+                << ",\"title\":" << detail::json_quote(entry.title)
+                << ",\"year\":" << detail::json_quote(entry.year)
+                << ",\"url\":" << detail::json_quote(entry.url) << '}';
+        }
+        out << "],\"children\":";
         detail::json_nodes(out, doc.children);
         out << "}\n";
         return out.str();

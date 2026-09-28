@@ -5,7 +5,7 @@ Choose an output based on where readers will use the report:
 
 * Markdown (``.md``) is useful in repositories and MyST documentation.
 * reStructuredText (``.rst``) works with Sphinx documentation sites.
-* HTML (``.html``) can be opened in a browser or styled with your CSS.
+* HTML (``.html``) opens in a browser with a responsive report style and MathJax formulas.
 * LaTeX (``.tex``) and Typst (``.typ``) are source files for typesetting.
 * Plain text (``.txt``) is useful for logs and terminals.
 * JSON (``.json``) preserves the semantic tree for inspection or another tool.
@@ -40,8 +40,10 @@ In Python, the equivalent is:
    for extension in ("md", "rst", "html", "tex", "typ", "txt", "json"):
        doc.write(f"report.{extension}")
 
-The output files do not embed referenced image files or stylesheets. Copy
-those assets to the location expected by the output site or compiler.
+The output files do not embed referenced image files or custom stylesheets.
+Copy those assets to the location expected by the output site or compiler.
+The HTML renderer embeds its default CSS; MathJax is loaded from a CDN unless
+you choose a local script or clean HTML mode.
 
 Support summary
 ---------------
@@ -72,12 +74,12 @@ Support summary
      - Native
      - Readable text
    * - Equations and citations
-     - MyST/key
-     - Math/key
-     - Code/key
-     - Native
-     - Math/key
-     - Text/key
+     - MyST/linked
+     - Math/linked
+     - Typeset/linked
+     - Code/linked
+     - Math/linked
+     - Text/entry
    * - Horizontal rules, page breaks
      - Rule/marker
      - Rule/marker
@@ -106,15 +108,53 @@ with configured environments for selected roles. Other renderers keep their
 content but ignore roles. The HTML and Markdown page-break markers use
 ``page-break`` as a class; an external print stylesheet can style it. Plain
 text omits page breaks and inline styling while keeping readable content.
-Citation keys appear as visible bracketed keys where no bibliography source
-is configured. LaTeX emits ``\cite{key}``; users supply bibliography tooling
-separately.
+Bibliography entries are emitted as a References section in every text format.
+Markdown, RST, HTML, and Typst citations link to their entry. LaTeX emits
+``\cite{key}`` and an inline ``thebibliography`` environment, so PDF builds
+need no external bibliography database. Plain text shows bracketed keys and
+matching entries; JSON includes the bibliography data. Rendering fails if a
+citation key has no entry.
 
 Math strings are passed through in Markdown, RST, and LaTeX. Typst sends
 expressions without backslashes to its native math syntax; those expressions
 must also be valid Typst math. A TeX expression containing a backslash becomes
 a visible raw-code block in Typst, so generated Typst remains readable without
-a TeX-to-Typst parser. HTML displays math strings as code.
+a TeX-to-Typst parser. HTML wraps TeX math in MathJax delimiters; clean HTML
+shows the source in code elements.
+
+HTML appearance and math
+------------------------
+
+The default HTML renderer includes a responsive report stylesheet and loads
+MathJax 4 from jsDelivr. Inline ``math()`` and block ``equation()`` content
+are typeset in the browser. The TeX source remains visible if the script
+cannot load. The page has a viewport tag, a centered width limit, a mobile
+padding breakpoint, fluid images, and horizontal scrolling for wide tables
+and code blocks. A custom stylesheet can override the built-in design:
+
+.. code-block:: cpp
+
+   auto html = briefpp::HtmlRenderer{}
+       .stylesheet("report.css")
+       .render(doc);
+
+For offline math, put a MathJax component and its required assets on your
+site and set ``mathjax_source("path/to/tex-chtml.js")``. To emit plain HTML
+with no embedded CSS, stylesheet links, or MathJax script, call
+``clean_html()``. Math remains readable as escaped TeX in ``<code>`` elements:
+
+.. code-block:: cpp
+
+   auto clean = briefpp::HtmlRenderer{}.clean_html().render(doc);
+
+The same options are available from Python:
+
+.. code-block:: python
+
+   from briefpp import HtmlRenderer
+
+   styled = HtmlRenderer().stylesheet("report.css").render(doc)
+   clean = HtmlRenderer().clean_html().render(doc)
 
 ``raw(Backend::Html, content)`` and ``raw(Backend::Typst, content)`` insert
 backend-specific content directly. Other renderers ignore those blocks. The

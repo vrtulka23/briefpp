@@ -99,6 +99,7 @@ TEST_CASE("incomplete rich table rows are rejected by renderers") {
 static briefpp::Document extended_document() {
     briefpp::Document doc;
     doc.title("A < B & C");
+    doc.bibliography_entry("smith2025", "Smith, A.", "An example study", "2025", "https://example.org/study");
     auto& section = doc.section("Results").label("results").role("summary").role("primary");
     section.paragraph().text("See ").reference("results").text(" and ")
         .citation("smith2025").text(". ").link("source", "https://example.org/?a=1&b=2");
@@ -119,19 +120,22 @@ static briefpp::Document extended_document() {
 TEST_CASE("new semantics render in existing formats") {
     const auto doc = extended_document();
     const auto md = briefpp::MarkdownRenderer{}.render(doc);
-    CHECK(md.find("[@smith2025]") != std::string::npos);
+    CHECK(md.find("[[smith2025]](#bib-smith2025)") != std::string::npos);
+    CHECK(md.find("<a id=\"bib-smith2025\"></a>") != std::string::npos);
     CHECK(md.find("float\n: Floating-point parameter") != std::string::npos);
     CHECK(md.find("---\n\n") != std::string::npos);
     CHECK(md.find("class=\"page-break\"") != std::string::npos);
 
     const auto rst = briefpp::RstRenderer{}.render(doc);
-    CHECK(rst.find("[smith2025]") != std::string::npos);
+    CHECK(rst.find("[smith2025]_") != std::string::npos);
+    CHECK(rst.find(".. [smith2025] Smith, A.") != std::string::npos);
     CHECK(rst.find("float\n   Floating-point parameter") != std::string::npos);
     CHECK(rst.find(".. raw:: html") != std::string::npos);
 
     const auto tex = briefpp::LatexRenderer{}.package("booktabs").style("scinumtools")
         .preamble("\\newcommand{\\foo}{bar}").render(doc);
     CHECK(tex.find("\\cite{smith2025}") != std::string::npos);
+    CHECK(tex.find("\\bibitem{smith2025}") != std::string::npos);
     CHECK(tex.find("\\begin{description}") != std::string::npos);
     CHECK(tex.find("\\newpage") != std::string::npos);
     CHECK(tex.find("\\usepackage{booktabs}") != std::string::npos);
@@ -139,19 +143,60 @@ TEST_CASE("new semantics render in existing formats") {
     CHECK(tex.find("\\newcommand{\\foo}{bar}") != std::string::npos);
 }
 
+TEST_CASE("citations require matching bibliography entries in nested rich text") {
+    briefpp::Document doc;
+    auto& section = doc.section("Sources");
+    section.table().columns("Name").cell().citation("missing");
+    CHECK_THROWS_AS(briefpp::MarkdownRenderer{}.render(doc), std::invalid_argument);
+    CHECK_THROWS_AS(briefpp::JsonRenderer{}.render(doc), std::invalid_argument);
+    doc.bibliography_entry("missing", "Author", "Title", "2026");
+    CHECK(briefpp::MarkdownRenderer{}.render(doc).find("#bib-missing") != std::string::npos);
+    CHECK_THROWS_AS(doc.bibliography_entry("missing", "Other", "Title", "2026"), std::invalid_argument);
+
+    briefpp::Document fragment;
+    fragment.bibliography_entry("fragment", "Author", "Fragment title", "2025");
+    fragment.paragraph().citation("fragment");
+    doc.append(fragment);
+    CHECK(briefpp::LatexRenderer{}.render(doc).find("\\bibitem{fragment}") != std::string::npos);
+}
+
 TEST_CASE("HTML maps semantics and escapes text and attributes") {
     const auto output = briefpp::HtmlRenderer{}.stylesheet("site.css?a=1&b=2").render(extended_document());
+    CHECK(output.find("cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js") != std::string::npos);
+    CHECK(output.find("<style>") != std::string::npos);
+    CHECK(output.find("<main class=\"briefpp-report\">") != std::string::npos);
     CHECK(output.find("<title>A &lt; B &amp; C</title>") != std::string::npos);
     CHECK(output.find("href=\"site.css?a=1&amp;b=2\"") != std::string::npos);
     CHECK(output.find("<section id=\"results\" class=\"summary primary\">") != std::string::npos);
-    CHECK(output.find("<cite data-cite-key=\"smith2025\">[smith2025]</cite>") != std::string::npos);
+    CHECK(output.find("href=\"#bib-smith2025\" class=\"citation\"") != std::string::npos);
+    CHECK(output.find("<li id=\"bib-smith2025\">") != std::string::npos);
     CHECK(output.find("<dl><dt>float</dt><dd>Floating-point parameter</dd>") != std::string::npos);
     CHECK(output.find("<figure id=\"plot\" class=\"primary\">") != std::string::npos);
     CHECK(output.find("src=\"plot&lt;&amp;&quot;.png\"") != std::string::npos);
     CHECK(output.find("<table id=\"parameters\" class=\"parameter-table\">") != std::string::npos);
+    CHECK(output.find("<div class=\"table-scroll\"><table") != std::string::npos);
     CHECK(output.find("<div class=\"page-break\"></div>") != std::string::npos);
     CHECK(output.find("<custom-element></custom-element>") != std::string::npos);
     CHECK(output.find("#align(center)") == std::string::npos);
+}
+
+TEST_CASE("HTML typesets math and clean mode retains readable source") {
+    briefpp::Document doc;
+    doc.paragraph().text("For ").math("a < b & c").text(" see below.");
+    doc.equation(R"(\frac{a}{b} = 2)", "ratio");
+    doc.table().columns("A").row("B");
+    const auto rich = briefpp::HtmlRenderer{}.render(doc);
+    CHECK(rich.find("<div class=\"table-scroll\"><table") != std::string::npos);
+    CHECK(rich.find("<span class=\"math\">\\(a &lt; b &amp; c\\)</span>") != std::string::npos);
+    CHECK(rich.find("<div id=\"ratio\" class=\"equation\">\\[\\frac{a}{b} = 2\\]</div>") != std::string::npos);
+    const auto clean = briefpp::HtmlRenderer{}.stylesheet("site.css").clean_html().render(doc);
+    CHECK(clean.find("<style>") == std::string::npos);
+    CHECK(clean.find("<script") == std::string::npos);
+    CHECK(clean.find("site.css") == std::string::npos);
+    CHECK(clean.find("table-scroll") == std::string::npos);
+    CHECK(clean.find("<code class=\"math\">a &lt; b &amp; c</code>") != std::string::npos);
+    CHECK(clean.find("<div id=\"ratio\" class=\"equation\"><code>\\frac{a}{b} = 2</code></div>") != std::string::npos);
+    CHECK(briefpp::HtmlRenderer{}.mathjax_source("local.js").render(doc).find("src=\"local.js\"") != std::string::npos);
 }
 
 TEST_CASE("Typst and plain text retain semantic content") {
@@ -164,11 +209,14 @@ TEST_CASE("Typst and plain text retain semantic content") {
     CHECK(typ.find("#figure(image(") != std::string::npos);
     CHECK(typ.find("#figure(table(columns: 2, table.header(") != std::string::npos);
     CHECK(typ.find("#align(center)[Custom]") != std::string::npos);
+    CHECK(typ.find("#link(label(\"bib-smith2025\"))") != std::string::npos);
+    CHECK(typ.find("<bib-smith2025>") != std::string::npos);
     CHECK(typ.find("<custom-element>") == std::string::npos);
 
     const auto txt = briefpp::PlainTextRenderer{}.render(doc);
     CHECK(txt.find("float: Floating-point parameter") != std::string::npos);
     CHECK(txt.find("See [results] and [smith2025]") != std::string::npos);
+    CHECK(txt.find("[smith2025] Smith, A. An example study. 2025.") != std::string::npos);
     CHECK(txt.find("Name | Value") != std::string::npos);
     CHECK(txt.find("#pagebreak") == std::string::npos);
 }
@@ -179,6 +227,7 @@ TEST_CASE("JSON AST includes schema, roles, nested content, and escapes") {
     CHECK(json.find("\"title\":\"A < B & C\"") != std::string::npos);
     CHECK(json.find("\"roles\":[\"summary\",\"primary\"]") != std::string::npos);
     CHECK(json.find("\"type\":\"citation\",\"target\":\"smith2025\"") != std::string::npos);
+    CHECK(json.find("\"bibliography\":[{\"key\":\"smith2025\"") != std::string::npos);
     CHECK(json.find("\"type\":\"definition_list\"") != std::string::npos);
     CHECK(json.find("\"type\":\"page_break\"") != std::string::npos);
     CHECK(json.find("\"backend\":\"html\"") != std::string::npos);

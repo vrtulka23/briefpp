@@ -34,8 +34,56 @@ Paragraphs support ``text``, ``emphasis``, ``strong``, ``code``, ``math``,
 ``link(text, url)``, ``reference(label)``, and ``citation(key)``. Use those
 methods on ``section.heading()``, ``figure.caption()``, ``table.cell()``, or
 ``list.item()`` for rich text in those positions. For plain text, the simple
-string overloads are shorter. Citation keys are retained; Brief++ does not
-manage a bibliography database.
+string overloads are shorter. Add a bibliography entry for every citation key;
+rendering raises an error if a key has no entry.
+
+Bibliography and citations
+--------------------------
+
+Entries belong to the document and appear in a References section after the
+body. Add the entry once, then cite its key from a paragraph, caption, table
+cell, heading, or list item. The URL is optional.
+
+.. code-block:: cpp
+
+   doc.bibliography_entry("smith2025", "A. Smith", "A study of reports", "2025",
+                          "https://example.org/study");
+   doc.paragraph().text("The method follows ").citation("smith2025").text(".");
+
+.. code-block:: python
+
+   doc.bibliography_entry("smith2025", "A. Smith", "A study of reports", "2025",
+                          "https://example.org/study")
+   doc.paragraph().text("The method follows ").citation("smith2025").text(".")
+
+Keys must start with an ASCII letter or digit and then contain only letters,
+digits, underscores, hyphens, or periods. Duplicate keys are rejected. When
+appending a document fragment, its bibliography entries are merged; conflicting
+entries with the same key are rejected. Brief++ formats entries from author,
+title, and year; it does not import BibTeX or CSL databases.
+
+Writing prose
+-------------
+
+You can write whole paragraphs as prose instead of chaining inline builders:
+
+.. code-block:: cpp
+
+   doc.paragraph(R"(The results were stable across the three runs.
+   Further measurements would help confirm the trend.)");
+
+.. code-block:: python
+
+   from pathlib import Path
+
+   doc.paragraph(Path("summary.txt").read_text(encoding="utf-8"))
+
+The text in ``summary.txt`` is treated as ordinary paragraph text. Brief++
+does not parse Markdown, reStructuredText, or another manuscript format from
+that string. To make a link or emphasize a phrase, add those parts with the
+inline builder methods. ``raw(Backend::Markdown, content)`` in C++ or
+``raw(Backend.MARKDOWN, content)`` in Python inserts Markdown only into the
+Markdown output, so use it when one backend needs its own syntax.
 
 Tables and lists
 ----------------

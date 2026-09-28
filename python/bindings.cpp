@@ -112,6 +112,9 @@ PYBIND11_MODULE(_core, m) {
        .def("institution", &Document::institution, py::return_value_policy::reference_internal)
        .def("abstract", &Document::abstract, py::return_value_policy::reference_internal)
        .def("keywords", &Document::keywords, py::return_value_policy::reference_internal)
+       .def("bibliography_entry", &Document::bibliography_entry,
+            py::arg("key"), py::arg("author"), py::arg("title"), py::arg("year"), py::arg("url") = "",
+            py::return_value_policy::reference_internal)
        .def("append", &Document::append, py::arg("fragment"), py::return_value_policy::reference_internal)
        .def("render", &render_document, py::arg("format"))
        .def("write", &Document::write, py::arg("path"));
@@ -133,6 +136,8 @@ PYBIND11_MODULE(_core, m) {
     py::class_<HtmlRenderer>(m, "HtmlRenderer")
         .def(py::init<>())
         .def("stylesheet", &HtmlRenderer::stylesheet, py::return_value_policy::reference_internal)
+        .def("clean_html", &HtmlRenderer::clean_html, py::arg("enabled") = true, py::return_value_policy::reference_internal)
+        .def("mathjax_source", &HtmlRenderer::mathjax_source, py::arg("path"), py::return_value_policy::reference_internal)
         .def("render", &HtmlRenderer::render);
 
     py::class_<TypstRenderer>(m, "TypstRenderer")

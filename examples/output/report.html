@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmospheric Simulation</title>
+<style>
+:root { color-scheme: light; --ink: #243347; --muted: #586b7d; --accent: #155c83; --line: #dbe4ea; --soft: #f2f7fa; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #f4f7f9; color: var(--ink); font: 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.briefpp-report { max-width: 58rem; margin: 2.5rem auto; padding: 2.5rem 3rem; background: white; box-shadow: 0 8px 40px #23394b12; border-radius: 12px; }
+.report-header { padding-bottom: 1.6rem; margin-bottom: 2.2rem; border-bottom: 2px solid var(--line); }
+h1, h2, h3, h4, h5, h6 { color: #17364d; line-height: 1.25; margin: 1.8em 0 .6em; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 .25rem; }
+h2 { font-size: 1.55rem; }
+h3 { font-size: 1.2rem; }
+p { margin: .6rem 0 1rem; }
+.subtitle { color: var(--accent); font-size: 1.2rem; margin: 0 0 1.2rem; }
+.author, .date, .institution { color: var(--muted); margin: .15rem 0; }
+.abstract { padding: .5rem 1.2rem; background: var(--soft); border-left: 4px solid var(--accent); border-radius: 4px; }
+.abstract h2 { margin-top: .7rem; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: #0d3d58; }
+figure { margin: 1.5rem 0; text-align: center; }
+img { max-width: 100%; height: auto; border-radius: 6px; }
+figcaption, caption { color: var(--muted); font-size: .92rem; }
+table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; }
+caption { text-align: left; padding-bottom: .4rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .6rem .75rem; text-align: left; vertical-align: top; }
+th { background: var(--soft); color: #17364d; }
+pre { overflow-x: auto; padding: 1rem 1.2rem; background: #152b3d; color: #f4f8fb; border-radius: 6px; line-height: 1.5; }
+code { font: .9em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+:not(pre) > code { background: var(--soft); padding: .12em .3em; border-radius: 3px; }
+.equation { margin: 1.5rem 0; overflow-x: auto; text-align: center; }
+blockquote { margin: 1.5rem 0; padding: .4rem 1rem; border-left: 4px solid var(--accent); color: var(--muted); background: var(--soft); }
+aside { margin: 1.25rem 0; padding: .7rem 1rem; background: #fff8e9; border-left: 4px solid #c78418; border-radius: 4px; }
+aside p { margin: .2rem 0; }
+dl dt { font-weight: 700; }
+dl dd { margin: 0 0 .8rem 1rem; }
+.references { border-top: 2px solid var(--line); margin-top: 3rem; }
+.references ol { padding-left: 1.5rem; }
+.references li { margin: .7rem 0; overflow-wrap: anywhere; }
+.page-break { break-before: page; }
+@media (max-width: 640px) { .briefpp-report { margin: 0; padding: 1.25rem; border-radius: 0; box-shadow: none; } }
+@media print { body { background: white; } .briefpp-report { margin: 0; max-width: none; padding: 0; box-shadow: none; } a { color: inherit; } }
+</style>
+<link rel="stylesheet" href="report.css">
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body>
+<main class="briefpp-report">
+<header class="report-header">
+<h1>Atmospheric Simulation</h1>
+<p class="subtitle">A Brief++ feature tour</p>
+<p class="author">Simulation Team</p>
+<p class="date">28 September 2026</p>
+<p class="institution">Example Research Lab</p>
+</header>
+<section class="abstract"><h2>Abstract</h2><p>A small, self-contained report showing the document model and all seven output formats.</p></section>
+<section id="introduction"><h2>Introduction and scope</h2>
+<p class="summary">This report combines <strong>measurements</strong> with an <em>idealized</em> model. The word <code>Brief++</code> refers to the report builder. See the <a href="https://github.com/vrtulka23/briefpp">project source</a> for the code and <a href="#density-profile">[density-profile]</a> for the generated figure. The report builder is documented by <a href="#bib-example2026" class="citation">[example2026]</a>.</p>
+<blockquote>A report should preserve the meaning of its content across formats.</blockquote>
+<aside><strong>note</strong><p>The numbers below are illustrative rather than observational data.</p></aside>
+</section>
+<section id="model"><h2>Model</h2>
+<p>The pressure model uses a scale height <span class="math">\(H = 8.4\,\mathrm{km}\)</span> under a constant-temperature assumption.</p>
+<div id="hydrostatic" class="equation">\[\frac{dP}{dz} = -\rho g\]</div>
+<div id="pressure-profile" class="equation">\[P(z) = P_0 e^{-z/H}\]</div>
+<p>Equation <a href="#pressure-profile">[pressure-profile]</a> describes the synthetic curve used here.</p>
+<pre><code class="language-cpp">double pressure(double z, double p0, double h) {
+    return p0 * std::exp(-z / h);
+}</code></pre>
+</section>
+<section id="results"><h2>Results</h2>
+<figure id="density-profile"><img src="density.png" alt="Synthetic atmospheric density by altitude."><figcaption>Synthetic atmospheric <strong>density</strong> by altitude.</figcaption></figure>
+<div class="table-scroll"><table id="conditions"><caption>Illustrative sea-level conditions</caption><thead><tr><th scope="col">Parameter</th><th scope="col">Value</th><th scope="col">Unit</th></tr></thead><tbody><tr><td>Temperature</td><td>273.15</td><td>K</td></tr><tr><td>Pressure</td><td>101325</td><td>Pa</td></tr><tr><td><strong>Scale height</strong></td><td>8.4</td><td>km</td></tr></tbody></table></div>
+<p>The values in <a href="#conditions">[conditions]</a> produce the trend shown in <a href="#density-profile">[density-profile]</a>.</p>
+<ol><li>Set the starting conditions</li><li>Review the output in every format</li><li>Compare the rendered documents</li></ol>
+<ul><li><strong>Check the details</strong><ul><li>Check the figure and table</li><li>Check the linked references</li></ul>
+</li></ul>
+<dl><dt>Density</dt><dd>Mass per unit volume</dd><dt><strong>Scale height</strong></dt><dd>Altitude over which pressure falls by a factor of <span class="math">\(e\)</span>.</dd></dl>
+<section><h3>Interpretation</h3>
+<p>The example emphasizes report structure, not atmospheric accuracy.</p>
+<aside><strong>warning</strong><p>Do not use these illustrative values for a real forecast.</p></aside>
+<aside><strong>tip</strong><p>Edit this source file and rebuild the demo to compare formats.</p></aside>
+<hr>
+</section>
+</section>
+<div class="table-scroll"><table><caption>Headerless summary table</caption><tbody><tr><td>Input</td><td>Illustrative profile</td></tr><tr><td>Outputs</td><td>Seven text formats and a PDF</td></tr></tbody></table></div>
+<p>This paragraph was added from a <code>DocumentFragment</code> to demonstrate reusable content.</p>
+<div class="page-break"></div>
+<section><h2>Backend-specific notes</h2>
+<p class="backend-note">HTML-only note.</p>
+</section>
+<section class="references"><h2>References</h2><ol>
+<li id="bib-example2026"><span>[example2026]</span> Brief++ contributors. Brief++ project source and documentation. 2026. <a href="https://github.com/vrtulka23/briefpp">https://github.com/vrtulka23/briefpp</a></li>
+</ol></section>
+</main>
+</body>
+</html>

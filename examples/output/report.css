@@ -1,0 +1,4 @@
+:root { --accent: #17647a; --soft: #edf6f7; }
+.report-header { border-top: 6px solid var(--accent); padding-top: 1.5rem; }
+figure img { box-shadow: 0 4px 18px #1b3f521a; }
+.backend-note { padding: .7rem 1rem; border-left: 4px solid var(--accent); background: var(--soft); }

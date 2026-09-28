@@ -7,6 +7,7 @@ namespace briefpp {
 class RstRenderer {
 public:
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         if (!doc.metadata.title.empty()) heading(out, detail::escape_rst(doc.metadata.title), '=');
         if (!doc.metadata.subtitle.empty()) heading(out, detail::escape_rst(doc.metadata.subtitle), '-');
@@ -16,6 +17,14 @@ public:
         if (!doc.metadata.abstract.empty()) out << "\n.. rubric:: Abstract\n\n" << detail::escape_rst(doc.metadata.abstract) << "\n\n";
         if (!doc.metadata.author.empty() || !doc.metadata.date.empty() || !doc.metadata.institution.empty()) out << "\n";
         for (const Node& node : doc.children) render_node(out, node, 0);
+        if (!doc.bibliography.empty()) {
+            heading(out, "References", '-');
+            for (const auto& entry : doc.bibliography) {
+                out << ".. [" << entry.key << "] " << detail::escape_rst(detail::bibliography_text(entry));
+                if (!entry.url.empty()) out << " `" << detail::escape_rst(entry.url) << " <" << entry.url << ">`_";
+                out << "\n\n";
+            }
+        }
         return out.str();
     }
 

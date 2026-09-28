@@ -98,6 +98,23 @@ Render and customize output
 
 ``Document`` and section nodes provide ``section``, ``paragraph``, ``equation``, ``figure``, ``table``, ``code_block``, ``list``, ``definition_list``, ``horizontal_rule``, ``page_break``, ``quote``, ``admonition``, ``warning``, ``note``, and ``raw``. A node's ``label`` and ``role`` methods set semantic IDs and roles. Paragraphs and other text nodes have ``text``, ``emphasis``, ``strong``, ``code``, ``math``, ``link``, ``reference``, and ``citation``. Rich text builders also come from ``section.heading()``, ``figure.caption()``, ``table.cell()``, ``list.item()``, and ``definition_list.definition_item()``. Keep a reference to a section when adding several blocks to it. Returned builders retain their owning document while they are in use.
 
+To cite a source, register it on the document before rendering:
+
+.. code-block:: python
+
+   doc.bibliography_entry("smith2025", "A. Smith", "A study of reports", "2025",
+                          "https://example.org/study")
+   doc.paragraph().text("See ").citation("smith2025").text(" for details.")
+
+The optional URL appears in the References section. Missing citation keys
+raise ``ValueError`` when you render or write the document.
+
+HTML output uses a responsive stylesheet and MathJax by default. Use
+``HtmlRenderer().clean_html().render(doc)`` for plain HTML without CSS or
+scripts, or ``HtmlRenderer().stylesheet("report.css").render(doc)`` for a
+custom stylesheet. ``mathjax_source("path/to/tex-chtml.js")`` selects a local
+MathJax script if the report must work without the CDN.
+
 Tables accept lists of strings with ``columns(["A", "B"])`` and ``row(["1", "2"])``. For rich cells, call ``column_count(n)`` or ``columns(...)`` first, then add content with ``cell().text(...).strong(...)``. Use ``list(True)`` for a numbered list and ``list(False)`` for bullets. ``DocumentFragment`` is an alias of ``Document``; ``doc.append(fragment)`` copies its blocks into ``doc``.
 
 For renderer settings, instantiate ``LatexRenderer``, ``HtmlRenderer``, or ``TypstRenderer`` and call ``render(doc)``. For example:

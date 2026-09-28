@@ -7,6 +7,7 @@ namespace briefpp {
 class MarkdownRenderer {
 public:
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         if (!doc.metadata.title.empty()) out << "# " << detail::escape_markdown(doc.metadata.title) << "\n\n";
         if (!doc.metadata.subtitle.empty()) out << "*" << detail::escape_markdown(doc.metadata.subtitle) << "*\n\n";
@@ -15,6 +16,15 @@ public:
         if (!doc.metadata.institution.empty()) out << "**Institution:** " << detail::escape_markdown(doc.metadata.institution) << "\n\n";
         if (!doc.metadata.abstract.empty()) out << "## Abstract\n\n" << detail::escape_markdown(doc.metadata.abstract) << "\n\n";
         for (const Node& node : doc.children) render_node(out, node, doc.metadata.title.empty() ? 1 : 2);
+        if (!doc.bibliography.empty()) {
+            out << "## References\n\n";
+            for (const auto& entry : doc.bibliography) {
+                out << "<a id=\"bib-" << entry.key << "\"></a>\n\n[" << entry.key << "] "
+                    << detail::escape_markdown(detail::bibliography_text(entry));
+                if (!entry.url.empty()) out << " " << "[" << detail::escape_markdown(entry.url) << "](" << entry.url << ")";
+                out << "\n\n";
+            }
+        }
         return out.str();
     }
 

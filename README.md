@@ -1,5 +1,11 @@
 # Brief++
 
+[![CI](https://github.com/vrtulka23/briefpp/actions/workflows/ci.yml/badge.svg)](https://github.com/vrtulka23/briefpp/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/briefpp.svg)](https://pypi.org/project/briefpp/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB.svg)](pyproject.toml)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg)](CMakeLists.txt)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A lightweight, embeddable C++17 library for generating technical and scientific reports in Markdown/MyST, reStructuredText/Sphinx, HTML, LaTeX, Typst, plain text, and JSON AST. The C++ core is header-only and has no external dependencies.
 
 ## Quick start
@@ -37,7 +43,7 @@ int main() {
 
 Run `cmake -S . -B build && cmake --build build && ctest --test-dir build` to build and test. The complete example is in [`examples/atmospheric.cpp`](examples/atmospheric.cpp).
 
-To generate files you can inspect, run `cmake --build build --target briefpp_demo` after configuring. This creates all seven text formats in `build/demo` alongside the sample figure; with `pdflatex` installed, it also creates a PDF. Edit `examples/atmospheric.cpp` and run the target again to see your changes.
+To regenerate the example exports, install `pdflatex` and run `cmake --build build --target briefpp_demo` after configuring. This writes all seven text formats, `report.pdf`, the sample figure, and the HTML stylesheet to [`examples/output`](examples/output). The example covers metadata, styled text, links, references, formulas, figures, both table styles, nested lists, definitions, notes, code, fragments, and backend-specific content. Edit [`examples/atmospheric.cpp`](examples/atmospheric.cpp) and run the target again to refresh every export.
 
 The standalone test build downloads doctest v2.5.3 through CMake FetchContent. When this repository is added as a subdirectory of another project, tests and examples default to off, so the header-only C++ library needs no download.
 
@@ -62,9 +68,9 @@ To publish a version, update both `project.version` in `pyproject.toml` and the 
 
 ## Supported subset
 
-The semantic model supports metadata, nested sections, reusable inline content, citations, equations, figures, headered and headerless tables, nested lists, definition lists, code blocks, quotes, admonitions, horizontal rules, page breaks, IDs, semantic roles, backend-specific raw blocks, and reusable document fragments. Markdown output uses MyST directives for equations, figures, and admonitions. RST output targets Sphinx. LaTeX, HTML, and Typst renderers have small backend-specific configuration APIs; LaTeX can map roles to style-defined environments.
+The semantic model supports metadata, nested sections, reusable inline content, citations, equations, figures, headered and headerless tables, nested lists, definition lists, code blocks, quotes, admonitions, horizontal rules, page breaks, IDs, semantic roles, backend-specific raw blocks, and reusable document fragments. Markdown output uses MyST directives for equations, figures, and admonitions. RST output targets Sphinx. HTML includes responsive styling and MathJax rendering by default; `HtmlRenderer{}.clean_html()` emits plain HTML without CSS or scripts. LaTeX, HTML, and Typst renderers have small backend-specific configuration APIs; LaTeX can map roles to style-defined environments.
 
-PDF compilation, parsing, and bibliography database management are outside the core. A `.tex` or `.typ` file can be compiled with an installed external tool. Figure files must exist at the paths used when rendering or compiling the report. See [renderer behavior and degradation](docs/backends.rst) for format-specific details.
+Bibliography entries can be added with `Document::bibliography_entry(key, author, title, year, url)` or Python's `Document.bibliography_entry(...)`. Citations link to these entries, and rendering rejects missing keys. External bibliography database import, parsing, and PDF compilation remain outside the core. A `.tex` or `.typ` file can be compiled with an installed external tool. Figure files must exist at the paths used when rendering or compiling the report. See [renderer behavior and degradation](docs/backends.rst) for format-specific details.
 
 The C++ API is documented in the [Sphinx documentation](docs/index.rst).
 

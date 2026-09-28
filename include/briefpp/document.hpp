@@ -5,6 +5,10 @@
 
 namespace briefpp {
 
+struct BibliographyEntry {
+    std::string key, author, title, year, url;
+};
+
 class Document {
 public:
     struct Metadata {
@@ -12,6 +16,7 @@ public:
         std::vector<std::string> keywords;
     } metadata;
     std::list<Node> children;
+    std::vector<BibliographyEntry> bibliography;
 
     Document& title(std::string value) { metadata.title = std::move(value); return *this; }
     Document& subtitle(std::string value) { metadata.subtitle = std::move(value); return *this; }
@@ -20,6 +25,21 @@ public:
     Document& institution(std::string value) { metadata.institution = std::move(value); return *this; }
     Document& abstract(std::string value) { metadata.abstract = std::move(value); return *this; }
     Document& keywords(std::vector<std::string> values) { metadata.keywords = std::move(values); return *this; }
+    Document& bibliography_entry(std::string key, std::string author, std::string title,
+                                 std::string year, std::string url = {}) {
+        if (key.empty() || !ascii_alnum(key.front()))
+            throw std::invalid_argument("bibliography key must start with an ASCII letter or digit");
+        for (char c : key)
+            if (!ascii_alnum(c) && c != '-' && c != '_' && c != '.')
+                throw std::invalid_argument("bibliography key contains an invalid character: " + key);
+        if (author.empty() || title.empty())
+            throw std::invalid_argument("bibliography author and title must be nonempty");
+        for (const auto& entry : bibliography)
+            if (entry.key == key) throw std::invalid_argument("duplicate bibliography key: " + key);
+        bibliography.push_back({std::move(key), std::move(author), std::move(title),
+                                std::move(year), std::move(url)});
+        return *this;
+    }
 
     Node& section(std::string heading) { return add(Kind::Section, std::move(heading)); }
     Node& paragraph(std::string content = {}) {
@@ -57,6 +77,18 @@ public:
         return node;
     }
     Document& append(const Document& fragment) {
+        for (const auto& entry : fragment.bibliography) {
+            bool found = false;
+            for (const auto& existing : bibliography) {
+                if (existing.key != entry.key) continue;
+                if (existing.author != entry.author || existing.title != entry.title ||
+                    existing.year != entry.year || existing.url != entry.url)
+                    throw std::invalid_argument("conflicting bibliography key: " + entry.key);
+                found = true;
+                break;
+            }
+            if (!found) bibliography.push_back(entry);
+        }
         children.insert(children.end(), fragment.children.begin(), fragment.children.end());
         return *this;
     }
@@ -66,6 +98,9 @@ public:
     void write(const std::string& path) const;
 
 private:
+    static bool ascii_alnum(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+    }
     Node& add(Kind type, std::string content = {}) {
         children.emplace_back(type, std::move(content));
         return children.back();

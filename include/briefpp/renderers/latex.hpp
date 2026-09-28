@@ -31,6 +31,7 @@ public:
         return *this;
     }
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         out << "\\documentclass[" << font_size_ << "pt," << paper_ << "paper]{" << class_name_ << "}\n"
             << "\\usepackage[T1]{fontenc}\n\\usepackage{amsmath}\n\\usepackage{graphicx}\n"
@@ -46,6 +47,15 @@ public:
         if (!doc.metadata.institution.empty()) out << "\\begin{center}" << detail::escape_latex(doc.metadata.institution) << "\\end{center}\n";
         if (!doc.metadata.abstract.empty()) out << "\\begin{abstract}\n" << detail::escape_latex(doc.metadata.abstract) << "\n\\end{abstract}\n";
         for (const Node& node : doc.children) render_node(out, node, 0);
+        if (!doc.bibliography.empty()) {
+            out << "\\begin{thebibliography}{" << std::string(std::to_string(doc.bibliography.size()).size(), '9') << "}\n";
+            for (const auto& entry : doc.bibliography) {
+                out << "\\bibitem{" << entry.key << "} " << detail::escape_latex(detail::bibliography_text(entry));
+                if (!entry.url.empty()) out << " \\url{" << detail::escape_latex(entry.url) << "}";
+                out << "\n";
+            }
+            out << "\\end{thebibliography}\n";
+        }
         out << "\\end{document}\n";
         return out.str();
     }

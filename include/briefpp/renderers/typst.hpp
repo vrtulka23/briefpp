@@ -47,7 +47,7 @@ inline std::string typst_inline(const InlineContent& content) {
         case InlineKind::Link:
             out += "#link(" + typst_string(part.target) + ")[" + escape_typst(part.value) + "]"; break;
         case InlineKind::Reference: out += "@" + part.target; break;
-        case InlineKind::Citation: out += "[" + escape_typst(part.target) + "]"; break;
+        case InlineKind::Citation: out += "#link(label(\"bib-" + part.target + "\"))[" + escape_typst("[" + part.target + "]") + "]"; break;
         }
     }
     return out;
@@ -60,6 +60,7 @@ public:
     TypstRenderer& preamble(std::string content) { preamble_ += std::move(content) + "\n"; return *this; }
 
     std::string render(const Document& doc) const {
+        detail::validate_citations(doc);
         std::ostringstream out;
         out << preamble_;
         if (!doc.metadata.title.empty()) out << "= " << detail::escape_typst(doc.metadata.title) << "\n\n";
@@ -69,6 +70,15 @@ public:
         if (!doc.metadata.institution.empty()) out << detail::escape_typst(doc.metadata.institution) << "\n\n";
         if (!doc.metadata.abstract.empty()) out << "== Abstract\n\n" << detail::escape_typst(doc.metadata.abstract) << "\n\n";
         for (const auto& node : doc.children) render_node(out, node, doc.metadata.title.empty() ? 1 : 2);
+        if (!doc.bibliography.empty()) {
+            out << "== References\n\n";
+            for (const auto& entry : doc.bibliography) {
+                out << "#block[" << detail::escape_typst("[" + entry.key + "]") << " "
+                    << detail::escape_typst(detail::bibliography_text(entry));
+                if (!entry.url.empty()) out << " #link(" << detail::typst_string(entry.url) << ")[" << detail::escape_typst(entry.url) << "]";
+                out << "]<bib-" << entry.key << ">" << (&entry == &doc.bibliography.back() ? "\n" : "\n\n");
+            }
+        }
         return out.str();
     }
 

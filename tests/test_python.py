@@ -20,9 +20,23 @@ def main():
     section.definition_list().item("term", "meaning")
     section.note("Note text")
     section.code_block("print(42)", "python")
+    doc.bibliography_entry("source2026", "Brief++ contributors", "Project source", "2026")
+    section.paragraph().text("See ").citation("source2026")
 
     assert "**result**" in doc.render("md")
+    assert "[[source2026]](#bib-source2026)" in doc.render("md")
+    assert "\\bibitem{source2026}" in doc.render("tex")
+    unresolved = briefpp.Document()
+    unresolved.paragraph().citation("unknown")
+    try:
+        unresolved.render("html")
+    except ValueError as error:
+        assert "unknown" in str(error)
+    else:
+        raise AssertionError("unresolved citation was accepted")
     assert "<strong>result</strong>" in doc.render("html")
+    assert "mathjax@4" in doc.render("html")
+    assert "<script" not in briefpp.HtmlRenderer().clean_html().render(doc)
     assert "Python report" in doc.render("rst")
     assert "Python report" in doc.render("tex")
     assert "Python report" in doc.render("typ")

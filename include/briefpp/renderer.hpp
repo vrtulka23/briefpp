@@ -70,6 +70,44 @@ inline std::string decimal(double value) {
     return stream.str();
 }
 
+inline std::string bibliography_text(const BibliographyEntry& entry) {
+    const auto sentence = [](const std::string& value) {
+        return value + (value.back() == '.' || value.back() == '!' || value.back() == '?' ? "" : ".");
+    };
+    std::string out = sentence(entry.author) + " " + sentence(entry.title);
+    if (!entry.year.empty()) out += " " + sentence(entry.year);
+    return out;
+}
+
+inline void validate_citations(const Document& doc) {
+    const auto check_inline = [&](const InlineContent& content) {
+        for (const auto& part : content.content) {
+            if (part.kind != InlineKind::Citation) continue;
+            const auto found = std::find_if(doc.bibliography.begin(), doc.bibliography.end(),
+                [&](const BibliographyEntry& entry) { return entry.key == part.target; });
+            if (found == doc.bibliography.end())
+                throw std::invalid_argument("citation has no bibliography entry: " + part.target);
+        }
+    };
+    const auto check_node = [&](const auto& self, const Node& node) -> void {
+        check_inline(node.inlines);
+        check_inline(node.heading_content);
+        check_inline(node.caption_content);
+        for (const auto& cell : node.headers) check_inline(cell);
+        for (const auto& row : node.rows) for (const auto& cell : row) check_inline(cell);
+        for (const auto& item : node.definitions) {
+            check_inline(item.term);
+            check_inline(item.description);
+        }
+        for (const auto& item : node.items) {
+            check_inline(item);
+            for (const auto& child : item.children) self(self, child);
+        }
+        for (const auto& child : node.children) self(self, child);
+    };
+    for (const auto& node : doc.children) check_node(check_node, node);
+}
+
 inline std::string inline_text(const InlineContent& content, Backend backend) {
     std::string out;
     for (const Inline& part : content.content) {
@@ -96,8 +134,8 @@ inline std::string inline_text(const InlineContent& content, Backend backend) {
                    backend == Backend::Rst ? ":ref:`" + part.target + "`" : "[](#" + part.target + ")"; break;
         case InlineKind::Citation:
             out += backend == Backend::Latex ? "\\cite{" + part.target + "}" :
-                   backend == Backend::Markdown ? "[@" + escape_markdown(part.target) + "]" :
-                   "[" + esc(part.target) + "]"; break;
+                   backend == Backend::Markdown ? "[[" + escape_markdown(part.target) + "]](#bib-" + part.target + ")" :
+                   "[" + part.target + "]_"; break;
         }
     }
     return out;

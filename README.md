@@ -45,7 +45,7 @@ The standalone test build downloads doctest v2.5.3 through CMake FetchContent. W
 
 The optional `briefpp` Python distribution installs the same C++ headers; it does not provide Python bindings or add dependencies to the C++ library. After `pip install briefpp`, obtain the compiler include directory with `python -c 'import briefpp; print(briefpp.get_include())'`. Use that directory with your compiler's `-I` option so `#include <briefpp/report.hpp>` works.
 
-To publish a version, update both `project.version` in `pyproject.toml` and the version in `CMakeLists.txt`, then publish a GitHub release tagged `v<version>` (for example, `v0.1.0`). The release workflow builds a wheel and source archive, checks the package, and uploads both to PyPI. Set the GitHub Actions secret `PYPI_API_TOKEN` to a PyPI API token before publishing. The first successful upload creates the PyPI project if the name is available.
+To publish a version, update both `project.version` in `pyproject.toml` and the version in `CMakeLists.txt`, then create a tag `v<version>` (for example, `v0.1.0`). Publish a GitHub release for that tag to run the workflow automatically, or choose **Actions → Publish to PyPI → Run workflow** and enter the tag to run it manually. The workflow checks out the tag, verifies its package version, builds a wheel and source archive, checks the package, and uploads both to PyPI using Trusted Publishing. Configure the PyPI trusted publisher for this repository and `.github/workflows/publish-pypi.yml`; no GitHub Actions API token secret is needed. If the PyPI publisher specifies a GitHub environment, set the same environment on the `publish` job.
 
 ## Supported subset
 

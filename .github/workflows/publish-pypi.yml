@@ -3,6 +3,12 @@ name: Publish to PyPI
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (for example, v0.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,12 +19,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Check release version
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
         run: |
           python - <<'PY'
           import os
@@ -68,6 +76,8 @@ jobs:
     name: Upload to PyPI
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -76,5 +86,4 @@ jobs:
       - name: Publish release
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           attestations: false

@@ -1,10 +1,20 @@
 Renderers and output behavior
 =============================
 
-``doc.write(path)`` selects a renderer from ``.md``, ``.rst``, ``.html``,
-``.tex``, ``.typ``, ``.txt``, or ``.json``. Each renderer can also return a
-string directly with ``render(doc)``. All seven text formats are generated
-using only the C++ standard library. PDF compilation is external.
+Choose an output based on where readers will use the report:
+
+* Markdown (``.md``) is useful in repositories and MyST documentation.
+* reStructuredText (``.rst``) works with Sphinx documentation sites.
+* HTML (``.html``) can be opened in a browser or styled with your CSS.
+* LaTeX (``.tex``) and Typst (``.typ``) are source files for typesetting.
+* Plain text (``.txt``) is useful for logs and terminals.
+* JSON (``.json``) preserves the semantic tree for inspection or another tool.
+
+``doc.write(path)`` selects a renderer from the filename extension. Renderers
+also return a string directly with ``render(doc)`` in C++, or
+``doc.render("html")`` in Python. The C++ library generates all seven formats
+without runtime dependencies. To make a PDF, compile a generated ``.tex`` or
+``.typ`` file with a separate tool.
 
 The same document can be written to every format:
 
@@ -22,6 +32,16 @@ The same document can be written to every format:
    doc.write("report.typ");
    doc.write("report.txt");
    doc.write("report.json");
+
+In Python, the equivalent is:
+
+.. code-block:: python
+
+   for extension in ("md", "rst", "html", "tex", "typ", "txt", "json"):
+       doc.write(f"report.{extension}")
+
+The output files do not embed referenced image files or stylesheets. Copy
+those assets to the location expected by the output site or compiler.
 
 Support summary
 ---------------
@@ -138,6 +158,16 @@ headings in HTML, LaTeX, and Typst.
 to external CSS files; no CSS is bundled. ``TypstRenderer`` supports
 ``preamble(content)`` for theme imports or show rules. These options are
 renderer-specific and do not change the common document model.
+
+For example, Python can render an HTML page that references your stylesheet:
+
+.. code-block:: python
+
+   from briefpp import HtmlRenderer
+
+   html = HtmlRenderer().stylesheet("report.css").render(doc)
+   with open("report.html", "w", encoding="utf-8") as output:
+       output.write(html)
 
 All renderers escape ordinary text for their output syntax. Raw blocks and
 math expressions are intentionally passed through. Figure paths are emitted

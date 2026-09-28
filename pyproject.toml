@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling>=1.27"]
-build-backend = "hatchling.build"
+requires = ["scikit-build-core>=0.10", "pybind11>=3.0"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "briefpp"
-version = "0.1.0"
-description = "Brief++: header-only C++17 reports in multiple formats"
+version = "0.2.0"
+description = "Brief++: C++17 reports with Python bindings"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = "MIT"
 authors = [{ name = "Brief++ contributors" }]
 keywords = ["c++", "header-only", "reports", "latex", "html"]
@@ -17,11 +17,16 @@ Homepage = "https://github.com/vrtulka23/briefpp"
 Documentation = "https://vrtulka23.github.io/briefpp/"
 Source = "https://github.com/vrtulka23/briefpp"
 
-[tool.hatch.build.targets.sdist]
-only-include = ["README.md", "LICENSE", "pyproject.toml", "python/briefpp", "include/briefpp"]
+[tool.scikit-build]
+wheel.packages = ["python/briefpp"]
+sdist.include = ["CMakeLists.txt", "include/briefpp/**", "python/**", "tests/test_python.py", "README.md", "LICENSE", "pyproject.toml"]
 
-[tool.hatch.build.targets.wheel]
-packages = ["python/briefpp"]
+[tool.scikit-build.cmake.define]
+BRIEFPP_BUILD_PYTHON = "ON"
+BRIEFPP_BUILD_TESTS = "OFF"
+BRIEFPP_BUILD_EXAMPLES = "OFF"
 
-[tool.hatch.build.targets.wheel.force-include]
-"include/briefpp" = "briefpp/include/briefpp"
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+skip = "*-musllinux*"
+test-command = "python {project}/tests/test_python.py"

@@ -43,9 +43,22 @@ The standalone test build downloads doctest v2.5.3 through CMake FetchContent. W
 
 ### PyPI header package
 
-The optional `briefpp` Python distribution installs the same C++ headers; it does not provide Python bindings or add dependencies to the C++ library. After `pip install briefpp`, obtain the compiler include directory with `python -c 'import briefpp; print(briefpp.get_include())'`. Use that directory with your compiler's `-I` option so `#include <briefpp/report.hpp>` works.
+The `briefpp` Python distribution includes native bindings and the C++ headers. Install it with `pip install briefpp`, then create and render a report:
 
-To publish a version, update both `project.version` in `pyproject.toml` and the version in `CMakeLists.txt`, then create a tag `v<version>` (for example, `v0.1.0`). Publish a GitHub release for that tag to run the workflow automatically, or choose **Actions → Publish to PyPI → Run workflow** and enter the tag to run it manually. The workflow checks out the tag, verifies its package version, builds a wheel and source archive, checks the package, and uploads both to PyPI using Trusted Publishing. Configure the PyPI trusted publisher for this repository and `.github/workflows/publish-pypi.yml`; no GitHub Actions API token secret is needed. If the PyPI publisher specifies a GitHub environment, set the same environment on the `publish` job.
+```python
+from briefpp import Document
+
+doc = Document().title("Experiment").author("Research team")
+results = doc.section("Results")
+results.paragraph().text("The answer is ").strong("42")
+results.table().columns(["Measure", "Value"]).row(["Answer", "42"])
+doc.write("report.md")
+print(doc.render("html"))
+```
+
+See the [Python guide](docs/python.rst) for the full binding API, supported formats, and source builds. C++ users can obtain the installed header directory with `python -c 'import briefpp; print(briefpp.get_include())'` and pass it to their compiler with `-I`.
+
+To publish a version, update both `project.version` in `pyproject.toml` and the version in `CMakeLists.txt`, then create a tag `v<version>` (for example, `v0.2.0`). Publish a GitHub release for that tag to run the workflow automatically, or choose **Actions → Publish to PyPI → Run workflow** and enter the tag to run it manually. The workflow checks out the tag, verifies its package version, builds platform wheels and a source archive, checks the package, and uploads the distributions to PyPI using Trusted Publishing. Configure the PyPI trusted publisher for this repository and `.github/workflows/publish-pypi.yml`; no GitHub Actions API token secret is needed. If the PyPI publisher specifies a GitHub environment, set the same environment on the `publish` job.
 
 ## Supported subset
 

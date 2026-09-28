@@ -45,9 +45,10 @@ jobs:
         run: python -m build
       - name: Check package metadata
         run: python -m twine check dist/*
-      - name: Verify installed headers
+      - name: Verify Python binding and installed headers
         run: |
           python -m pip install --no-deps dist/*.whl
+          python tests/test_python.py
           python - <<'PY'
           from pathlib import Path
           import briefpp
@@ -68,21 +69,57 @@ jobs:
           CPP
       - uses: actions/upload-artifact@v7
         with:
-          name: python-distributions
-          path: dist/
+          name: python-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  wheels:
+    name: Build ${{ matrix.os }} wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x86_64
+          - os: windows-2025
+            arch: AMD64
+          - os: macos-15
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
+    env:
+      CIBW_ARCHS: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install cibuildwheel
+        run: python -m pip install 'cibuildwheel>=3,<4'
+      - name: Build and test wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
           if-no-files-found: error
 
   publish:
     name: Upload to PyPI
-    needs: build
+    needs: [build, wheels]
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       id-token: write
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: python-distributions
+          pattern: python-*
           path: dist/
+          merge-multiple: true
       - name: Publish release
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

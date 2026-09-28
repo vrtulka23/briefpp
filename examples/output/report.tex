@@ -1,0 +1,37 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{geometry}
+\geometry{margin=25mm}
+\title{Atmospheric Simulation}
+\author{Simulation Team}
+\date{}
+\begin{document}
+\maketitle
+\section{Introduction}
+This report contains the results of the atmospheric simulation.
+
+\section{Model}
+\begin{equation}
+\frac{dP}{dz} = -\rho g
+\label{hydrostatic}
+\end{equation}
+\section{Results}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{density.png}
+\caption{Atmospheric density profile}
+\label{density-profile}
+\end{figure}
+\begin{longtable}{lll}
+Parameter & Value & Unit \\
+\hline
+Temperature & 273.15 & K \\
+Pressure & 101325 & Pa \\
+\end{longtable}
+See \ref{density-profile} for the profile.
+
+\end{document}

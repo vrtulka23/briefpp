@@ -16,4 +16,8 @@ int main() {
     doc.write("report.md");
     doc.write("report.rst");
     doc.write("report.tex");
+    doc.write("report.html");
+    doc.write("report.typ");
+    doc.write("report.txt");
+    doc.write("report.json");
 }

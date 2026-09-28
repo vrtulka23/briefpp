@@ -8,7 +8,7 @@ Add ``include/`` to the C++ include path. No installation or separate library bu
    add_subdirectory(external/cpp-reportlib)
    target_link_libraries(application PRIVATE reportlib::reportlib)
 
-The example in ``examples/atmospheric.cpp`` builds a document with sections, an equation, a figure, a table, and a reference, then writes ``.md``, ``.rst``, and ``.tex`` files. The generated output and figure are in ``examples/output``.
+The example in ``examples/atmospheric.cpp`` builds a document with sections, an equation, a figure, a table, and a reference, then writes ``.md``, ``.rst``, ``.html``, ``.tex``, ``.typ``, ``.txt``, and ``.json`` files.
 
 .. code-block:: console
 
@@ -21,4 +21,4 @@ The example in ``examples/atmospheric.cpp`` builds a document with sections, an 
 
 The standalone test build fetches doctest v2.5.3. When embedded with ``add_subdirectory()``, tests and examples default to off. Set ``REPORTLIB_BUILD_TESTS=ON`` explicitly to build the doctest suite in that case.
 
-To produce reports you can open, install ``pdflatex`` and run ``cmake --build build --target reportlib_demo``. The four generated formats are saved in ``build/demo``. Edit the C++ example and rebuild the target to regenerate them.
+Run ``cmake --build build --target reportlib_demo`` to save seven text formats in ``build/demo``. If ``pdflatex`` is installed, the target also creates a PDF. Edit the C++ example and rebuild the target to regenerate the files.

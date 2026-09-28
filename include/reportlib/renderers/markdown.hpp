@@ -24,7 +24,7 @@ private:
             out << "(" << node.id << ")=\n";
         switch (node.kind) {
         case Kind::Section:
-            out << std::string(static_cast<std::size_t>(std::min(depth, 6)), '#') << " " << detail::escape_markdown(node.value) << "\n\n";
+            out << std::string(static_cast<std::size_t>(std::min(depth, 6)), '#') << " " << detail::inline_text(node.heading_content, Backend::Markdown) << "\n\n";
             for (const Node& child : node.children) render_node(out, child, depth + 1);
             break;
         case Kind::Paragraph: out << detail::inline_text(node, Backend::Markdown) << "\n\n"; break;
@@ -37,33 +37,47 @@ private:
             out << "```{figure} " << node.value << "\n";
             if (!node.id.empty()) out << ":name: " << node.id << "\n";
             if (node.width_fraction != 1.0) out << ":width: " << detail::decimal(node.width_fraction * 100) << "%\n";
-            out << "\n" << detail::escape_markdown(node.caption_text) << "\n```\n\n";
+            out << "\n" << detail::inline_text(node.caption_content, Backend::Markdown) << "\n```\n\n";
             break;
         case Kind::Table:
             detail::require_table(node);
             out << "|";
-            for (const auto& cell : node.headers) out << " " << detail::escape_markdown(cell) << " |";
+            for (const auto& cell : node.headers) out << " " << detail::inline_text(cell, Backend::Markdown) << " |";
             out << "\n|";
             for (std::size_t i = 0; i < node.headers.size(); ++i) out << " --- |";
             out << "\n";
             for (const auto& row : node.rows) {
                 out << "|";
-                for (const auto& cell : row) out << " " << detail::escape_markdown(cell) << " |";
+                for (const auto& cell : row) out << " " << detail::inline_text(cell, Backend::Markdown) << " |";
                 out << "\n";
             }
-            if (!node.caption_text.empty()) out << "\n*" << detail::escape_markdown(node.caption_text) << "*\n";
+            if (!node.caption_content.empty()) out << "\n*" << detail::inline_text(node.caption_content, Backend::Markdown) << "*\n";
             out << "\n";
             break;
         case Kind::CodeBlock:
             out << "```" << node.language_name << "\n" << node.value << "\n```\n\n"; break;
-        case Kind::List:
-            for (std::size_t i = 0; i < node.items.size(); ++i)
-                out << (node.ordered ? std::to_string(i + 1) + ". " : "- ") << detail::escape_markdown(node.items[i]) << "\n";
-            out << "\n"; break;
+        case Kind::List: render_list(out, node, 0); out << "\n"; break;
+        case Kind::DefinitionList:
+            for (const auto& item : node.definitions)
+                out << detail::inline_text(item.term, Backend::Markdown) << "\n: "
+                    << detail::inline_text(item.description, Backend::Markdown) << "\n\n";
+            break;
         case Kind::Quote: out << "> " << detail::replace_all(detail::escape_markdown(node.value), "\n", "\n> ") << "\n\n"; break;
         case Kind::Admonition:
             out << "```{" << node.admonition_kind << "}\n" << detail::escape_markdown(node.value) << "\n```\n\n"; break;
+        case Kind::HorizontalRule: out << "---\n\n"; break;
+        case Kind::PageBreak: out << "<div class=\"page-break\"></div>\n\n"; break;
         case Kind::Raw: if (node.raw_backend == Backend::Markdown) out << node.value << "\n\n"; break;
+        }
+    }
+    static void render_list(std::ostringstream& out, const Node& node, int indent) {
+        std::size_t index = 0;
+        for (const auto& item : node.items) {
+            out << std::string(static_cast<std::size_t>(indent), ' ')
+                << (node.ordered ? std::to_string(++index) + ". " : "- ")
+                << detail::inline_text(item, Backend::Markdown) << "\n";
+            for (const auto& child : item.children) if (child.kind == Kind::List)
+                render_list(out, child, indent + 2);
         }
     }
 };

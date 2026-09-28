@@ -40,6 +40,9 @@ public:
         node.ordered = numbered;
         return node;
     }
+    Node& definition_list() { return add(Kind::DefinitionList); }
+    Node& horizontal_rule() { return add(Kind::HorizontalRule); }
+    Node& page_break() { return add(Kind::PageBreak); }
     Node& quote(std::string content) { return add(Kind::Quote, std::move(content)); }
     Node& admonition(std::string type, std::string content) {
         Node& node = add(Kind::Admonition, std::move(content));

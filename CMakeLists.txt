@@ -35,28 +35,26 @@ endif()
 
 if(REPORTLIB_BUILD_EXAMPLES)
   find_program(REPORTLIB_PDFLATEX pdflatex)
-  if(REPORTLIB_PDFLATEX)
-    add_custom_target(reportlib_demo
+  add_custom_target(reportlib_demo
+    COMMAND ${CMAKE_COMMAND}
+      -DREPORTLIB_EXAMPLE=$<TARGET_FILE:atmospheric_report>
+      -DREPORTLIB_FIGURE=${CMAKE_CURRENT_SOURCE_DIR}/examples/output/density.png
+      -DREPORTLIB_PDFLATEX=${REPORTLIB_PDFLATEX}
+      -DREPORTLIB_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/demo
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/all_formats.cmake
+    DEPENDS atmospheric_report
+    COMMENT "Generating all text formats and optional PDF demo"
+    VERBATIM
+  )
+  if(REPORTLIB_BUILD_TESTS)
+    add_test(
+      NAME reportlib_all_formats
       COMMAND ${CMAKE_COMMAND}
         -DREPORTLIB_EXAMPLE=$<TARGET_FILE:atmospheric_report>
         -DREPORTLIB_FIGURE=${CMAKE_CURRENT_SOURCE_DIR}/examples/output/density.png
         -DREPORTLIB_PDFLATEX=${REPORTLIB_PDFLATEX}
-        -DREPORTLIB_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/demo
+        -DREPORTLIB_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/all_formats.cmake
-      DEPENDS atmospheric_report
-      COMMENT "Generating Markdown, RST, LaTeX, and PDF demo reports"
-      VERBATIM
     )
-    if(REPORTLIB_BUILD_TESTS)
-      add_test(
-        NAME reportlib_all_formats
-        COMMAND ${CMAKE_COMMAND}
-          -DREPORTLIB_EXAMPLE=$<TARGET_FILE:atmospheric_report>
-          -DREPORTLIB_FIGURE=${CMAKE_CURRENT_SOURCE_DIR}/examples/output/density.png
-          -DREPORTLIB_PDFLATEX=${REPORTLIB_PDFLATEX}
-          -DREPORTLIB_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration
-          -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/all_formats.cmake
-      )
-    endif()
   endif()
 endif()
